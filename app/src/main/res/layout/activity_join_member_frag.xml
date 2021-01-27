@@ -4,6 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".join_member_frag">
+    tools:context=".join_member_frag"
+    android:background="@drawable/back_grade">
+
+    <EditText
+        android:hint = "이름을 입력하세요."
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

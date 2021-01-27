@@ -1,4 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <group android:checkableBehavior="single">
+
+
+
+        <item
+            android:id="@+id/navi_work"
+            android:title="[ 운동 ] ">
+
+
+            <menu>
+                <item
+                    android:id="@+id/navi_schedule"
+                    android:title="스케줄"/>
+
+
+                <item
+                    android:id="@+id/navi_alarm"
+                    android:title="알람 맞추기"/>
+
+
+                <item
+                    android:id="@+id/navi_weather"
+                    android:title="오늘 날씨"/>
+
+            </menu>
+
+        </item>
+
+        <item
+            android:id="@+id/navi_record"
+            android:title="[ 기록 ]">
+
+
+        <menu>
+            <item
+                android:id="@+id/navi_my"
+                android:title="나의 기록"/>
+
+
+             <item
+                 android:id="@+id/navi_pet"
+                 android:title="반려동물 기록"/>
+
+        </menu>
+
+       </item>
+
+
+
+        <item
+            android:id="@+id/navi_commincate"
+            android:title="[ 대화 공간 ]">
+
+
+            <menu>
+                <item
+                    android:id="@+id/navi_with"
+                    android:title="함께해요"/>
+
+
+                <item
+                    android:id="@+id/navi_my_everyday"
+                    android:title="이야기 나눔터"/>
+
+            </menu>
+
+        </item>
+
+    <item
+        android:id="@+id/navi_etc"
+        android:title="[ 설정 ]">
+
+
+        <menu>
+            <item
+                android:id="@+id/navi_Alim"
+                android:title="알림"/>
+
+        </menu>
+
+    </item>
+    </group>
+
 </menu>

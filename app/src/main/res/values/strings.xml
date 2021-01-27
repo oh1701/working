@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">working_project</string>
+
+    <string name="naver_client_id">1DzszHpGWDSM3PL9jpEb</string>
+    <string name="naver_client_secret">03BmrVGzpb</string>
+    <string name="naver_client_name">working_project</string>
 </resources>

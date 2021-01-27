@@ -7,5 +7,7 @@ class join_member_frag : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_join_member_frag)
+
+
     }
 }
