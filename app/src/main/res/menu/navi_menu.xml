@@ -13,16 +13,19 @@
             <menu>
                 <item
                     android:id="@+id/navi_schedule"
+                    android:icon = "@drawable/ic_baseline_arrow_right_24"
                     android:title="스케줄"/>
 
 
                 <item
                     android:id="@+id/navi_alarm"
+                    android:icon = "@drawable/ic_baseline_arrow_right_24"
                     android:title="알람 맞추기"/>
 
 
                 <item
                     android:id="@+id/navi_weather"
+                    android:icon = "@drawable/ic_baseline_arrow_right_24"
                     android:title="오늘 날씨"/>
 
             </menu>
@@ -37,11 +40,13 @@
         <menu>
             <item
                 android:id="@+id/navi_my"
+                android:icon = "@drawable/ic_baseline_arrow_right_24"
                 android:title="나의 기록"/>
 
 
              <item
                  android:id="@+id/navi_pet"
+                 android:icon = "@drawable/ic_baseline_arrow_right_24"
                  android:title="반려동물 기록"/>
 
         </menu>
@@ -58,12 +63,14 @@
             <menu>
                 <item
                     android:id="@+id/navi_with"
-                    android:title="함께해요"/>
+                    android:icon = "@drawable/ic_baseline_arrow_right_24"
+                    android:title="함께 운동해요"/>
 
 
                 <item
                     android:id="@+id/navi_my_everyday"
-                    android:title="이야기 나눔터"/>
+                    android:icon = "@drawable/ic_baseline_arrow_right_24"
+                    android:title="이야기 나눠요"/>
 
             </menu>
 
@@ -77,6 +84,7 @@
         <menu>
             <item
                 android:id="@+id/navi_Alim"
+                android:icon = "@drawable/ic_baseline_arrow_right_24"
                 android:title="알림"/>
 
         </menu>
