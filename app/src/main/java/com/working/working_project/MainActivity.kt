@@ -1,11 +1,21 @@
 package com.working.working_project
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
+import android.location.LocationProvider
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.bumptech.glide.Glide
@@ -19,40 +29,163 @@ import kotlinx.coroutines.runBlocking
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
+import kotlin.properties.Delegates
 
 val data_type = "JSON"
 val num_Of_rows = 10
 val page_No = 1
 val base_time = 2000
-val base_date = 20210128
-val nx = "55"
-val ny = "127"
+val base_date = 20210129
+var nx by Delegates.notNull<String>()
+var ny by Delegates.notNull<String>()
+
+val gpsLocationListener = object : LocationListener {
+    override fun onLocationChanged(location: Location) {
+        val provider: String = location.provider
+        val longitude: Double = location.longitude // 경도
+        val latitude: Double = location.latitude // 위도
+        val altitude: Double = location.altitude // 고도
+    }
+
+    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
+    }
+
+    override fun onProviderEnabled(provider: String) {
+    }
+
+    override fun onProviderDisabled(provider: String) {
+    }
+}
+
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+
+    var TO_GRID = 0
+    var TO_GPS = 1
+
+    var loca_keung by Delegates.notNull<Double>()
+    var loca_we by Delegates.notNull<Double>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val call = ApiObject.retrofitService.GetWeather(data_type, num_Of_rows, page_No, base_date, base_time, nx, ny)
-        call.enqueue(object : retrofit2.Callback<WEATHER>{
-            override fun onResponse(call: Call<WEATHER>, response: Response<WEATHER>) {
-                if(response.isSuccessful){
-                    Log.d("api", response.body().toString())
-                }
-            }
+        // 위치 (위도, 경도 구하기 시작.)
+        val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-            override fun onFailure(call: Call<WEATHER>, t: Throwable) {
+            val isGPSEnabled: Boolean = lm.isProviderEnabled(LocationManager.GPS_PROVIDER) // gps 권한 여부 Boolean 표현
+            val isNetworkEnabled: Boolean = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER) // 네트워크 권한 여부 Boolean 표현
+
+            if (Build.VERSION.SDK_INT >= 23 && //빌드 SDK 버전이 23 이상이고, 퍼미션 체크를 했을때 퍼미션을 허가받았는지 확인. GRANTED (허가받은)
+                    ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 0) //허용하지 않았다면 request 코드 0을 부여.
+            } else {
+                when { // 프로바이더 제공자 활성화 여부 체크
+                    isNetworkEnabled -> {
+                        val location = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER) // 인터넷 기반으로 위치를 찾는다
+                        //getLastKnownLocation(매개변수) -> 매개변수에 담긴 문자열이 위치 정보 제공자. 위치값 얻지 못하면 null 반환, 값 가져오면 관련된 정보를 location 객체에 담아 전달.
+                        val getLongitude = location?.longitude!! //경도
+                        val getLatitude = location.latitude // 위도
+
+                        binding.text.text = getLongitude.toString()
+                        binding.text2.text = getLatitude.toString()
+
+                        loca_keung = getLongitude
+                        loca_we = getLatitude
+
+                        Toast.makeText(this, "현재위치 불러옴", Toast.LENGTH_SHORT).show()
+                    }
+
+                    isGPSEnabled -> {
+                        val location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER) // GPS 기반으로 위치를 찾는다
+                        //getLastKnownLocation(매개변수) -> 매개변수에 담긴 문자열이 위치 정보 제공자. 위치값 얻지 못하면 null 반환, 값 가져오면 관련된 정보를 location 객체에 담아 전달.
+
+                        val getLongitude = location?.longitude!! //경도
+                        val getLatitude = location.latitude // 위도
+
+                        binding.text.text = getLongitude.toString()
+                        binding.text2.text = getLatitude.toString()
+
+                        loca_keung = getLongitude
+                        loca_we = getLatitude
+
+                        Log.d("위치", getLongitude.toString())
+                        Log.d("위치", getLatitude.toString())
+
+                        Toast.makeText(this, "현재위치 불러옴", Toast.LENGTH_SHORT).show()
+                    }
+
+                    else -> {
+
+                    }
+
+                //몇초 간격과 몇미터를 이동했을 시에 호출되는 부분 - 주기적으로 위치 업데이트 시 사용
+                // *** 주기적 업데이트 사용하다가 사용안할시 반드시 해제 필요 ***
+                /* lm.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                 1000, //몇초
+                 1F, // 몇미터
+                 gpsLocationListener)
+                 lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+                 1000, //몇초
+                 1F, // 몇미터
+                 gpsLocationListener)
+
+                 lm.removeUpdates(gpsLocationListener) // 해제 부분
+
+                 */
             }
-        })
+            lm.removeUpdates(gpsLocationListener)
+        }
+
+        //위도, 경도 구하기 끝
+
+        /*변환 확인*/
+        val tmp = convertGRID_GPS(TO_GRID, loca_we, loca_keung)
+        val tmp2 = convertGRID_GPS(TO_GRID, 37.01130555555556, 127.259875)
+        val tmp3 = convertGRID_GPS(TO_GRID, 33.500946412305076, 126.54663058817043)
+        Log.d(">>", "x = " + tmp.x + ", y = " + tmp.y)
+        Log.d(">>", "x = " + tmp2.x + ", y = " + tmp2.y)
+        Log.d(">>", "x = " + tmp3.x + ", y = " + tmp3.y)
+
+        //lat_x =  위도, lat_y = 경도
+
+        var int_tmp_x = tmp.x.toInt()
+        var int_tmp_y = tmp.y.toInt()
+
+        Log.d("인트x", int_tmp_x.toString())
+
+        nx = int_tmp_x.toString() // nx에 위도를 격자로 변환한 값 넣어주기
+        ny = int_tmp_y.toString() // ny에 위도를 격자로 변환한 값 넣어주기
+
+        Log.d("nx", nx)
+        binding.btn.setOnClickListener {
+            Toast.makeText(this, "현재 위도는 $nx, 경도는 $ny 입니다.", Toast.LENGTH_LONG).show()
+        }
+
+        val call = ApiObject.retrofitService.GetWeather(data_type, num_Of_rows, page_No, base_date, base_time, nx, ny)
+        // 레트로핏 이용하여 날씨 정보 가져오기.
+
+            call.enqueue(object : retrofit2.Callback<WEATHER> {
+
+                override fun onResponse(call: Call<WEATHER>, response: Response<WEATHER>) {
+                    if (response.isSuccessful) {
+                        Log.d("api", response.body().toString())
+                    }
+                }
+
+                override fun onFailure(call: Call<WEATHER>, t: Throwable) {
+                }
+            })
 
         binding.naviSetting.setOnClickListener {
             binding.drawerlay.openDrawer(GravityCompat.START)  // 왼쪽에서 화면 나옴
         }
 
         binding.naviView.setNavigationItemSelectedListener(this) //네비게이션 아이템 클릭 속성 부여.
-    }
+
+    } //Oncreate 끝
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean { //네비게이션 아이템 선택 시
         var drawer = findViewById<DrawerLayout>(R.id.drawerlay)
@@ -81,9 +214,87 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         if (binding.drawerlay.isDrawerOpen(GravityCompat.START)) // drawerlayout이 GravityCompat.START 식으로 열려있는 경우
         {
             binding.drawerlay.closeDrawers() // 닫아준다
-        } else {
+        }
+        else {
             super.onBackPressed()
         }
     }
+
+    private fun convertGRID_GPS(mode: Int, lat_X: Double, lng_Y: Double): LatXLngY { //위, 경도를 격자로 변환
+        val RE = 6371.00877 // 지구 반경(km)
+        val GRID = 5.0 // 격자 간격(km)
+        val SLAT1 = 30.0 // 투영 위도1(degree)
+        val SLAT2 = 60.0 // 투영 위도2(degree)
+        val OLON = 126.0 // 기준점 경도(degree)
+        val OLAT = 38.0 // 기준점 위도(degree)
+        val XO = 43.0 // 기준점 X좌표(GRID)
+        val YO = 136.0 // 기1준점 Y좌표(GRID)
+
+        //
+        // LCC DFS 좌표변환 ( code : "TO_GRID"(위경도->좌표, lat_X:위도,  lng_Y:경도), "TO_GPS"(좌표->위경도,  lat_X:x, lng_Y:y) )
+        //
+        val DEGRAD = Math.PI / 180.0
+        val RADDEG = 180.0 / Math.PI
+        val re = RE / GRID
+        val slat1 = SLAT1 * DEGRAD
+        val slat2 = SLAT2 * DEGRAD
+        val olon = OLON * DEGRAD
+        val olat = OLAT * DEGRAD
+
+        var sn = Math.tan(Math.PI * 0.25 + slat2 * 0.5) / Math.tan(Math.PI * 0.25 + slat1 * 0.5)
+        sn = Math.log(Math.cos(slat1) / Math.cos(slat2)) / Math.log(sn)
+        var sf = Math.tan(Math.PI * 0.25 + slat1 * 0.5)
+        sf = Math.pow(sf, sn) * Math.cos(slat1) / sn
+        var ro = Math.tan(Math.PI * 0.25 + olat * 0.5)
+        ro = re * sf / Math.pow(ro, sn)
+        val rs = LatXLngY()
+        if (mode == TO_GRID) {
+            rs.lat = lat_X
+            rs.lng = lng_Y
+            var ra = Math.tan(Math.PI * 0.25 + lat_X * DEGRAD * 0.5)
+            ra = re * sf / Math.pow(ra, sn)
+            var theta = lng_Y * DEGRAD - olon
+            if (theta > Math.PI) theta -= 2.0 * Math.PI
+            if (theta < -Math.PI) theta += 2.0 * Math.PI
+            theta *= sn
+            rs.x = Math.floor(ra * Math.sin(theta) + XO + 0.5)
+            rs.y = Math.floor(ro - ra * Math.cos(theta) + YO + 0.5)
+        } else {
+            rs.x = lat_X
+            rs.y = lng_Y
+            val xn = lat_X - XO
+            val yn = ro - lng_Y + YO
+            var ra = Math.sqrt(xn * xn + yn * yn)
+            if (sn < 0.0) {
+                ra = -ra
+            }
+            var alat = Math.pow(re * sf / ra, 1.0 / sn)
+            alat = 2.0 * Math.atan(alat) - Math.PI * 0.5
+            var theta = 0.0
+            if (Math.abs(xn) <= 0.0) {
+                theta = 0.0
+            } else {
+                if (Math.abs(yn) <= 0.0) {
+                    theta = Math.PI * 0.5
+                    if (xn < 0.0) {
+                        theta = -theta
+                    }
+                } else theta = Math.atan2(xn, yn)
+            }
+            val alon = theta / sn + olon
+            rs.lat = alat * RADDEG
+            rs.lng = alon * RADDEG
+        }
+        return rs
+    }
+
+
+    internal class LatXLngY {
+        var lat = 0.0
+        var lng = 0.0
+        var x = 0.0
+        var y = 0.0
+    }
+
 }
 

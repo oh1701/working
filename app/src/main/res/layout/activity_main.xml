@@ -55,6 +55,26 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="6">
+
+        <Button
+            android:id="@+id/btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:id="@+id/text"
+            android:text="1"
+            android:layout_width="100dp"
+            android:textColor="@color/black"
+            android:layout_height="100dp"/>
+
+
+        <TextView
+            android:id="@+id/text2"
+            android:text="1"
+            android:layout_width="100dp"
+            android:textColor="@color/black"
+            android:layout_height="100dp"/>
         
         
     </LinearLayout>
