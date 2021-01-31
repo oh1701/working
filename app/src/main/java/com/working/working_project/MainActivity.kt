@@ -29,15 +29,12 @@ import kotlinx.coroutines.runBlocking
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.*
 import kotlin.properties.Delegates
-
-val data_type = "JSON"
-val num_Of_rows = 10
-val page_No = 1
-val base_time = 2000
-val base_date = 20210129
-var nx by Delegates.notNull<String>()
-var ny by Delegates.notNull<String>()
 
 val gpsLocationListener = object : LocationListener {
     override fun onLocationChanged(location: Location) {
@@ -57,6 +54,20 @@ val gpsLocationListener = object : LocationListener {
     }
 }
 
+val data_type = "JSON"
+val num_Of_rows = 10
+val page_No = 1
+/*
+var base_time = 2300
+var base_date = 20210130
+var nx = "60"
+var ny = "127"*/
+
+var base_time by Delegates.notNull<Int>() //by Delegates.notNull<Int>()
+var base_date by Delegates.notNull<Int>()
+var nx by Delegates.notNull<String>() // 위도
+var ny by Delegates.notNull<String>() // 경도
+
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
@@ -66,19 +77,45 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     var loca_keung by Delegates.notNull<Double>()
     var loca_we by Delegates.notNull<Double>()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    // 23시 기준, 153개 조회
+        override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 위치 (위도, 경도 구하기 시작.)
-        val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val now = LocalDateTime.now() // 날짜, 시간을 표시하는 코드. now는 현재를 알아냄
+
+        val timeformat = DateTimeFormatter.ofPattern("HHmm") // 데이트타임 형식을 패턴식으로 변환, HH = 시. mm = 분
+        val dateformat = DateTimeFormatter.ofPattern("YYYYMMDD") // 데이트타임 형식을 패턴식으로 변환, YYYY = 년도. MM 월, DD 일.
+
+        val nowtime = now.format(timeformat) // == 현재 시간
+        val nowdate = now.format(dateformat) // == 현재 날짜
+
+        base_time = nowtime.toInt()
+        base_date = nowdate.toInt()
+
+        if (base_time < now.format(DateTimeFormatter.ofPattern("HH40")).toInt()) // base_time 이 현재 시간 40분보다 적다면
+        {
+            base_time = now.format(DateTimeFormatter.ofPattern("HH00")).toInt() - 100 // 현재 시간 0분으로 설정 후 1시간을 뺌
+        }
+        else
+        { // 40분보다 많으면
+            base_time = now.format(DateTimeFormatter.ofPattern("HH00")).toInt() // 현재 시각 0분을 기준으로 설정
+        }
+
+        Log.d("현재 시간", "$base_time")
+        Log.d("현재 날짜", "$base_date")
+
+        binding.btn.setOnClickListener {
+
+            // 위치 (위도, 경도 구하기 시작.)
+            val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
             val isGPSEnabled: Boolean = lm.isProviderEnabled(LocationManager.GPS_PROVIDER) // gps 권한 여부 Boolean 표현
             val isNetworkEnabled: Boolean = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER) // 네트워크 권한 여부 Boolean 표현
 
-            if (Build.VERSION.SDK_INT >= 23 && //빌드 SDK 버전이 23 이상이고, 퍼미션 체크를 했을때 퍼미션을 허가받았는지 확인. GRANTED (허가받은)
+            if (Build.VERSION.SDK_INT >= 26 && //빌드 SDK 버전이 23 이상이고, 퍼미션 체크를 했을때 퍼미션을 허가받았는지 확인. GRANTED (허가받은)
                     ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 0) //허용하지 않았다면 request 코드 0을 부여.
             } else {
@@ -121,9 +158,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
                     }
 
-                //몇초 간격과 몇미터를 이동했을 시에 호출되는 부분 - 주기적으로 위치 업데이트 시 사용
-                // *** 주기적 업데이트 사용하다가 사용안할시 반드시 해제 필요 ***
-                /* lm.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                    //몇초 간격과 몇미터를 이동했을 시에 호출되는 부분 - 주기적으로 위치 업데이트 시 사용
+                    // *** 주기적 업데이트 사용하다가 사용안할시 반드시 해제 필요 ***
+                    /* lm.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                  1000, //몇초
                  1F, // 몇미터
                  gpsLocationListener)
@@ -135,60 +172,67 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                  lm.removeUpdates(gpsLocationListener) // 해제 부분
 
                  */
+                }
+                lm.removeUpdates(gpsLocationListener)
             }
-            lm.removeUpdates(gpsLocationListener)
-        }
 
-        //위도, 경도 구하기 끝
 
-        /*변환 확인*/
-        val tmp = convertGRID_GPS(TO_GRID, loca_we, loca_keung)
-        val tmp2 = convertGRID_GPS(TO_GRID, 37.01130555555556, 127.259875)
-        val tmp3 = convertGRID_GPS(TO_GRID, 33.500946412305076, 126.54663058817043)
-        Log.d(">>", "x = " + tmp.x + ", y = " + tmp.y)
-        Log.d(">>", "x = " + tmp2.x + ", y = " + tmp2.y)
-        Log.d(">>", "x = " + tmp3.x + ", y = " + tmp3.y)
+                //위도, 경도 구하기 끝
 
-        //lat_x =  위도, lat_y = 경도
+                /*변환 확인*/
+                val tmp = convertGRID_GPS(TO_GRID, loca_we, loca_keung)
+                val tmp2 = convertGRID_GPS(TO_GRID, 37.01130555555556, 127.259875)
+                val tmp3 = convertGRID_GPS(TO_GRID, 33.500946412305076, 126.54663058817043)
+                Log.d(">>", "x = " + tmp.x + ", y = " + tmp.y)
+                Log.d(">>", "x = " + tmp2.x + ", y = " + tmp2.y)
+                Log.d(">>", "x = " + tmp3.x + ", y = " + tmp3.y)
 
-        var int_tmp_x = tmp.x.toInt()
-        var int_tmp_y = tmp.y.toInt()
+                //lat_x =  위도, lat_y = 경도
 
-        Log.d("인트x", int_tmp_x.toString())
+                val int_tmp_x = tmp.x.toInt()
+                val int_tmp_y = tmp.y.toInt()
 
-        nx = int_tmp_x.toString() // nx에 위도를 격자로 변환한 값 넣어주기
-        ny = int_tmp_y.toString() // ny에 위도를 격자로 변환한 값 넣어주기
+                Log.d("위도", int_tmp_x.toString())
+                Log.d("경도", int_tmp_y.toString())
 
-        Log.d("nx", nx)
-        binding.btn.setOnClickListener {
-            Toast.makeText(this, "현재 위도는 $nx, 경도는 $ny 입니다.", Toast.LENGTH_LONG).show()
-        }
+                nx = int_tmp_x.toString() // nx에 위도를 격자로 변환한 값 넣어주기
+                ny = int_tmp_y.toString() // ny에 경도를 격자로 변환한 값 넣어주기
 
-        val call = ApiObject.retrofitService.GetWeather(data_type, num_Of_rows, page_No, base_date, base_time, nx, ny)
-        // 레트로핏 이용하여 날씨 정보 가져오기.
+                Log.d("nx", nx)
+                val call = ApiObject.retrofitService.GetWeather(data_type, num_Of_rows, page_No, base_date, base_time, nx, ny) // 날씨 api 불러오기
+                call.enqueue(object : retrofit2.Callback<WEATHER> { // enqueue == 데이터를 입력하는 함수
+                    override fun onResponse(call: Call<WEATHER>, response: Response<WEATHER>) { //연결 성공 시
+                        if (response.isSuccessful) {
+                            Log.d("api 작동 1 :", response.body().toString())
 
-            call.enqueue(object : retrofit2.Callback<WEATHER> {
-
-                override fun onResponse(call: Call<WEATHER>, response: Response<WEATHER>) {
-                    if (response.isSuccessful) {
-                        Log.d("api", response.body().toString())
+                            Log.d("현재 시간", "$base_time")
+                            Log.d("현재 날짜", "$base_date")
+                            Log.d("현재 위도", "$nx")
+                            Log.d("현재 경도", "$ny")
+                        }
                     }
-                }
 
-                override fun onFailure(call: Call<WEATHER>, t: Throwable) {
-                }
-            })
+                    override fun onFailure(call: Call<WEATHER>, t: Throwable) { //연결 성공 시
+                        t.message?.let { Log.d("api fail :", it) }
+                    }
+                })
+            }
 
-        binding.naviSetting.setOnClickListener {
-            binding.drawerlay.openDrawer(GravityCompat.START)  // 왼쪽에서 화면 나옴
-        }
+            binding.btn2.setOnClickListener {
+                Toast.makeText(this, "현재 위도는 $nx, 경도는 $ny 입니다.", Toast.LENGTH_LONG).show()
+            }
 
-        binding.naviView.setNavigationItemSelectedListener(this) //네비게이션 아이템 클릭 속성 부여.
+            binding.naviSetting.setOnClickListener {
+                binding.drawerlay.openDrawer(GravityCompat.START)  // 왼쪽에서 화면 나옴
+            }
 
-    } //Oncreate 끝
+            binding.naviView.setNavigationItemSelectedListener(this) //네비게이션 아이템 클릭 속성 부여.
+
+
+        } //Oncreate 끝
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean { //네비게이션 아이템 선택 시
-        var drawer = findViewById<DrawerLayout>(R.id.drawerlay)
+        val drawer = findViewById<DrawerLayout>(R.id.drawerlay)
         var d = 0
 
         when (item.itemId) {

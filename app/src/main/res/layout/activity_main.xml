@@ -57,9 +57,16 @@
         android:layout_weight="6">
 
         <Button
+            android:text="버튼"
             android:id="@+id/btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn2"
+            android:text="위경도"/>
 
         <TextView
             android:id="@+id/text"
