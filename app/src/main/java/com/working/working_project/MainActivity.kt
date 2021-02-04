@@ -2,6 +2,7 @@ package com.working.working_project
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
@@ -245,7 +246,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                             for (i in response.body()!!.response.body.items.item.indices) {
 
                                 if (response.body()!!.response.body.items.item[i].category == "POP"){
-                                    response.body()!!.response.body.items.item[i].fcstValue.toString()
+                                    rain_probabillity = response.body()!!.response.body.items.item[i].fcstValue.toString()
                                 }
 
                                 if (response.body()!!.response.body.items.item[i].category == "REH") {
@@ -266,7 +267,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
                                 if (response.body()!!.response.body.items.item[i].category == "PTY") {
                                     when (response.body()!!.response.body.items.item[i].fcstValue.toInt()) { // 강수형태
-                                        0 -> rain_form = "없음"
+                                        0 -> rain_form = "맑음"
                                         1 -> rain_form = "비"
                                         2 -> rain_form = "진눈개비"
                                         3 -> rain_form = "눈"
@@ -278,7 +279,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                                 }
                             }
 
-                            Log.d("결과는 이렇습니다. : ", "하늘 상태는 $sky_weather 이며 강수 형태는 $rain_form 입니다. 강수 확률은 $rain_probabillity % 이며, 기온은 $Temperature 입니다. 습도는 $humidity 입니다.")
+                            Log.d("결과는 이렇습니다. : ", "현재 시간 $fcstTime 의 하늘 상태는 $sky_weather 이며 강수 형태는 $rain_form 입니다. 강수 확률은 $rain_probabillity % 이며, 기온은 $Temperature 입니다. 습도는 $humidity 입니다.")
                             Log.d("발표 시간", "$base_time")
                             Log.d("발표 날짜", "$base_date")
                             Log.d("현재 시간", "$fcstTime")
@@ -305,6 +306,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             binding.naviView.setNavigationItemSelectedListener(this) //네비게이션 아이템 클릭 속성 부여.
 
+            binding.move.setOnClickListener {
+                var intent = Intent(this, login_main::class.java)
+                startActivity(intent)
+            }
 
         } //Oncreate 끝
 

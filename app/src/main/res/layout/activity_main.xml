@@ -82,6 +82,12 @@
             android:layout_width="100dp"
             android:textColor="@color/black"
             android:layout_height="100dp"/>
+
+        <Button
+            android:id="@+id/move"
+            android:text="이동"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
         
         
     </LinearLayout>
