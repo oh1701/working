@@ -1,16 +1,10 @@
-package com.working.working_project
+package com.working.working_project.login
 
-import android.app.Dialog
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
-import com.google.android.gms.tasks.OnCompleteListener
-import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.ktx.Firebase
 import com.working.working_project.databinding.ActivityJoinMemberFragBinding
 
 class join_member_frag : AppCompatActivity() {

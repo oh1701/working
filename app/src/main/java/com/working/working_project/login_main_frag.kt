@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.ktx.Firebase
 import com.working.working_project.databinding.ActivityLoginMainBinding
 
 class login_main : AppCompatActivity() {
@@ -51,7 +50,7 @@ class login_main : AppCompatActivity() {
 
     fun movepage(user: FirebaseUser?){
         if(user != null){ //유저가 파이어베이스에 존재할시
-            Toast.makeText(this, "아이디가 존재한다.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "아이디 확인을 위해 최초 1회, 이메일 인증이 필요합니다.", Toast.LENGTH_SHORT).show()
 
             if(firebaseAuth.currentUser!!.isEmailVerified){ // 이메일 인증 확인하기.
                 Toast.makeText(this, "이미 이메일 인증을 하였습니다..", Toast.LENGTH_SHORT).show()  //돼있으면
