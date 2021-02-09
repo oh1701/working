@@ -30,7 +30,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.properties.Delegates
 
-// 나중에 수정하기  (뭘 수정할지 모르면 실행해보고 보면 알음.)
+// 카테고리 별 리스트에 추가하는거 찾아내기.
 
 val gpsLocationListener = object : LocationListener {
     override fun onLocationChanged(location: Location) {
@@ -51,7 +51,7 @@ val gpsLocationListener = object : LocationListener {
 }
 
 val data_type = "JSON"
-val num_Of_rows = 5
+val num_Of_rows = 6
 var page_No = 0
 /*
 var base_time = 2300
@@ -59,13 +59,13 @@ var base_date = 20210130
 var nx = "60"
 var ny = "127"*/
 
-var base_time by Delegates.notNull<Int>() //by Delegates.notNull<Int>()
-var base_date by Delegates.notNull<Int>()
+var base_time by Delegates.notNull<String>() //by Delegates.notNull<Int>()
+var base_date by Delegates.notNull<String>()
 var nx by Delegates.notNull<String>() // 위도 격자
 var ny by Delegates.notNull<String>() // 경도 격자
 val fcstValue = -1.0 // 임의 지정
-var fcstDate by Delegates.notNull<Int>()
-var fcstTime by Delegates.notNull<Int>()
+var fcstDate by Delegates.notNull<String>()
+var fcstTime by Delegates.notNull<String>()
 
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -86,31 +86,36 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
                 val now = LocalDateTime.now() // 날짜, 시간을 표시하는 코드. now는 현재를 알아냄
 
-                val timeformat = DateTimeFormatter.ofPattern("kmm") // 데이트타임 형식을 패턴식으로 변환, k = 시간을 24시간으로 표현한 것. mm = 분
+                val timeformat = DateTimeFormatter.ofPattern("HHmm") // 데이트타임 형식을 패턴식으로 변환, H = 시간을 24시간으로 표현한 것. mm = 분
                 val dateformat = DateTimeFormatter.ofPattern("yyyyMMdd") // 데이트타임 형식을 패턴식으로 변환, yyyy = 년도. MM 월, dd 일.
 
                 var nowtime = now.format(timeformat) // == 현재 시간
                 val nowdate = now.format(dateformat) // == 현재 날짜\
 
-                base_time = nowtime.toInt()
+                Log.d("바뀌기 전 시간", nowtime)
 
-                  if(base_time > now.format(DateTimeFormatter.ofPattern("k40")).toInt())  // 현재 시간이 30분 이후라면
-                      base_time = now.format(DateTimeFormatter.ofPattern("k40")).toInt() // 발표 시간을 현재 시, 30분으로 맞춤
+                base_time = nowtime
+                base_date = nowdate
+
+                  if(base_time.toInt() > now.format(DateTimeFormatter.ofPattern("H45")).toInt())  // 현재 시간이 30분 이후라면
+                      base_time = now.format(DateTimeFormatter.ofPattern("H45")) // 발표 시간을 현재 시, 30분으로 맞춤
                   else
-                      base_time = now.format(DateTimeFormatter.ofPattern("k40")).toInt() - 100 // 현재 시간이 30분 이전이라면, 발표 시간을 1시간 전 30분으로 맞춤.
+                      base_time = (now.format(DateTimeFormatter.ofPattern("H45")).toInt() - 100).toString() // 현재 시간이 45분 이전이라면, 발표 시간을 1시간 전 45분으로 맞춤.
 
-                base_date = nowdate.toInt()
-
-
+                if(base_time.toInt() < 100) { // 00시 일경우
+                    base_time = now.format(DateTimeFormatter.ofPattern("2345")) // 발표시간은 23시 45분 것.
+                    base_date = (base_date.toInt() - 1).toString() // 날짜는 이전 날을 사용
+                }
+            
                 Log.d("발표 시간", "$base_time")
                 Log.d("발표 날짜", "$base_date")
 
-               fcstDate = nowdate.toInt()
-               fcstTime = nowtime.toInt()
+               fcstDate = nowdate
+               fcstTime = nowtime
 
-                Log.d("현재 시간은", fcstTime.toString())
-
+                Log.d("현재 시간은", "$fcstTime")
                Log.d("현재 날짜", "$fcstDate")
+
                 binding.btn.setOnClickListener {
 
 
@@ -205,6 +210,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
                     Log.d("nx", nx)
 
+
+                    var rain_probabillity = arrayOfNulls<String>(3) //"강수 확률"
+                    var rain_form = arrayOfNulls<String>(3) //"강수 형태"
+                    var humidity = arrayOfNulls<String>(3) //"습도"
+                    var sky_weather = arrayOfNulls<String>(3) //"하늘 상태"
+                    var Temperature = arrayOfNulls<String>(3) //"기온"
+
                     for (i in 0..9) {
 
                         page_No++
@@ -216,72 +228,65 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                             override fun onResponse(call: Call<WEATHER>, response: Response<WEATHER>) { //연결 성공 시
                                 if (response.isSuccessful) {
 
-                                    //Log.d("api 작동 1 :", response.body().toString())
-                                    Log.d("api 작동 2 : ", response.body()!!.response.body.items.item.toString())
-                                    Log.d("api 작동 3 : ", response.body()!!.response.body.items.item[0].category)
+                                    Log.d("api 작동 1 :", response.body().toString())
+                                    //Log.d("api 작동 2 : ", response.body()!!.response.body.items.item.toString())
+                                    //Log.d("api 작동 3 : ", response.body()!!.response.body.items.item[0].category)
 
                                     // POP = 강수확률 , PTY = 강수형태, R06 = 6시간 강수량, REH = 습도, SKY = 하늘상태, T3H 3시간 기온,
 
-                                        var rain_probabillity = arrayOfNulls<String>(3) //"강수 확률"
-                                        var rain_form  = arrayOfNulls<String>(3) //"강수 형태"
-                                        var humidity  = arrayOfNulls<String>(3) //"습도"
-                                        var sky_weather  = arrayOfNulls<String>(3) //"하늘 상태"
-                                        var Temperature  = arrayOfNulls<String>(3) //"기온"
+                                    /*for (j in 0..2) { // 지금 시간 ~ 2시간 후 시간 여기부분 고치기
+                                        if (response.body()!!.response.body.items.item[i].category == "POP") { // 강수 확률
+                                            rain_probabillity.set(j, response.body()!!.response.body.items.item[i].fcstValue.toString())
+                                        }
 
-                                        for(j in 0 .. 2) { // 지금 시간 ~ 2시간 후 시간
-                                            if (response.body()!!.response.body.items.item[j].category == "POP") { // 강수 확률
-                                                rain_probabillity.set(i, response.body()!!.response.body.items.item[j].fcstValue.toString())
-                                            }
+                                        if (response.body()!!.response.body.items.item[i].category == "REH") { // 습도
+                                            humidity.set(j, response.body()!!.response.body.items.item[i].fcstValue.toString())
+                                        }
 
-                                            if (response.body()!!.response.body.items.item[j].category == "REH") { // 습도
-                                                humidity.set(i, response.body()!!.response.body.items.item[j].fcstValue.toString())
-                                            }
+                                        if (response.body()!!.response.body.items.item[i].category == "T3H") {
+                                            Temperature.set(j, response.body()!!.response.body.items.item[i].fcstValue.toString()) // 기온
+                                        }
 
-                                            if (response.body()!!.response.body.items.item[j].category == "T3H") {
-                                                Temperature.set(i, response.body()!!.response.body.items.item[j].fcstValue.toString()) // 기온
-                                            }
-
-                                            if (response.body()!!.response.body.items.item[j].category == "SKY") { // 하늘 상태
-                                                when (response.body()!!.response.body.items.item[j].fcstValue.toInt()) {
-                                                    1 -> sky_weather.set(j, "맑음")
-                                                    3 -> sky_weather.set(j, "구름 많음")
-                                                    4 -> sky_weather.set(j, "흐림")
-                                                }
-                                            }
-
-                                            if (response.body()!!.response.body.items.item[i].category == "PTY") {
-                                                when (response.body()!!.response.body.items.item[i].fcstValue.toInt()) { // 강수형태
-                                                    0 -> rain_form.set(j, "맑음")
-                                                    1 -> rain_form.set(j, "비")
-                                                    2 -> rain_form.set(j, "진눈개비")
-                                                    3 -> rain_form.set(j, "눈")
-                                                    4 -> rain_form.set(j, "소나기")
-                                                    5 -> rain_form.set(j, "빗방울")
-                                                    6 -> rain_form.set(j, "진눈개비")
-                                                    7 -> rain_form.set(j, "눈날림")
-                                                }
+                                        if (response.body()!!.response.body.items.item[j].category == "SKY") { // 하늘 상태
+                                            when (response.body()!!.response.body.items.item[j].fcstValue.toInt()) {
+                                                1 -> sky_weather.set(j, "맑음")
+                                                3 -> sky_weather.set(j, "구름 많음")
+                                                4 -> sky_weather.set(j, "흐림")
                                             }
                                         }
-                                            Log.d("결과는 이렇습니다. : ", "시간 ${response.body()!!.response.body.items.item[j].fcstTime} 의 하늘 상태는 ${sky_weather[j]} 이며 강수 형태는 ${rain_form[j]} 입니다. 강수 확률은 ${rain_probabillity[j]} % 이며, 기온은 ${Temperature[j]} 입니다. 습도는 ${humidity[j]} 입니다.")
 
+                                        if (response.body()!!.response.body.items.item[j].category == "PTY") {
+                                            when (response.body()!!.response.body.items.item[j].fcstValue.toInt()) { // 강수형태
+                                                0 -> rain_form.set(j, "맑음")
+                                                1 -> rain_form.set(j, "비")
+                                                2 -> rain_form.set(j, "진눈개비")
+                                                3 -> rain_form.set(j, "눈")
+                                                4 -> rain_form.set(j, "소나기")
+                                                5 -> rain_form.set(j, "빗방울")
+                                                6 -> rain_form.set(j, "진눈개비")
+                                                7 -> rain_form.set(j, "눈날림")
+                                            }
+                                        }
 
-                                            Log.d("발표 시간", "$base_time")
-                                            Log.d("발표 날짜", "$base_date")
-                                            Log.d("현재 시간", "$fcstTime")
-                                            Log.d("현재 날짜", "$fcstDate")
-                                            Log.d("현재 위도", "$nx")
-                                            Log.d("현재 경도", "$ny")
+                                        Log.d("결과는 이렇습니다. : ", "시간 ${response.body()!!.response.body.items.item[j].fcstTime} 의 하늘 상태는 ${sky_weather[j]} 이며 강수 형태는 ${rain_form[j]} 입니다. 강수 확률은 ${rain_probabillity[j]} % 이며, 기온은 ${Temperature[j]} 입니다. 습도는 ${humidity[j]} 입니다.")
 
+                                    }*/
 
-                                    }
                                 }
+                            }
 
                             override fun onFailure(call: Call<WEATHER>, t: Throwable) { //연결 실패시 시
-                                t.message?.let { Log.d("api fail :", it) }
+                                Log.d("api fail :", t.toString())
                             }
                         })
-
                     }
+
+                    Log.d("발표 시간", "$base_time")
+                    Log.d("발표 날짜", "$base_date")
+                    Log.d("현재 시간", "$fcstTime")
+                    Log.d("현재 날짜", "$fcstDate")
+                    Log.d("현재 위도", "$nx")
+                    Log.d("현재 경도", "$ny")
                 }
 
 
