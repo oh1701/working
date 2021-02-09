@@ -17,6 +17,9 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.FragmentManager
+import com.google.android.gms.dynamic.SupportFragmentWrapper
+import com.google.android.gms.maps.GoogleMap
 import com.google.android.material.navigation.NavigationView
 import com.working.working_project.databinding.ActivityMainBinding
 import retrofit2.Call
@@ -24,7 +27,10 @@ import retrofit2.Response
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.properties.Delegates
+
+// 나중에 수정하기  (뭘 수정할지 모르면 실행해보고 보면 알음.)
 
 val gpsLocationListener = object : LocationListener {
     override fun onLocationChanged(location: Location) {
@@ -45,8 +51,8 @@ val gpsLocationListener = object : LocationListener {
 }
 
 val data_type = "JSON"
-val num_Of_rows = 10
-val page_No = 1
+val num_Of_rows = 5
+var page_No = 0
 /*
 var base_time = 2300
 var base_date = 20210130
@@ -55,22 +61,14 @@ var ny = "127"*/
 
 var base_time by Delegates.notNull<Int>() //by Delegates.notNull<Int>()
 var base_date by Delegates.notNull<Int>()
-var nx by Delegates.notNull<String>() // 위도
-var ny by Delegates.notNull<String>() // 경도
-val fcstValue = -1.0
+var nx by Delegates.notNull<String>() // 위도 격자
+var ny by Delegates.notNull<String>() // 경도 격자
+val fcstValue = -1.0 // 임의 지정
 var fcstDate by Delegates.notNull<Int>()
 var fcstTime by Delegates.notNull<Int>()
 
-class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
-    val time1 = "0210".toInt()
-    val time2 = "0510".toInt()
-    val time3 = "0810".toInt()
-    val time4 = "1110".toInt()
-    val time5 = "1410".toInt()
-    val time6 = "1710".toInt()
-    val time7 = "2010".toInt()
-    val time8 = "2310".toInt()
+class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     var TO_GRID = 0
     var TO_GPS = 1
@@ -88,41 +86,31 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
                 val now = LocalDateTime.now() // 날짜, 시간을 표시하는 코드. now는 현재를 알아냄
 
-                val timeformat = DateTimeFormatter.ofPattern("HHmm") // 데이트타임 형식을 패턴식으로 변환, HH = 시. mm = 분
+                val timeformat = DateTimeFormatter.ofPattern("kmm") // 데이트타임 형식을 패턴식으로 변환, k = 시간을 24시간으로 표현한 것. mm = 분
                 val dateformat = DateTimeFormatter.ofPattern("yyyyMMdd") // 데이트타임 형식을 패턴식으로 변환, yyyy = 년도. MM 월, dd 일.
 
-                val nowtime = now.format(timeformat) // == 현재 시간
-                val nowdate = now.format(dateformat) // == 현재 날짜
+                var nowtime = now.format(timeformat) // == 현재 시간
+                val nowdate = now.format(dateformat) // == 현재 날짜\
 
                 base_time = nowtime.toInt()
+
+                  if(base_time > now.format(DateTimeFormatter.ofPattern("k40")).toInt())  // 현재 시간이 30분 이후라면
+                      base_time = now.format(DateTimeFormatter.ofPattern("k40")).toInt() // 발표 시간을 현재 시, 30분으로 맞춤
+                  else
+                      base_time = now.format(DateTimeFormatter.ofPattern("k40")).toInt() - 100 // 현재 시간이 30분 이전이라면, 발표 시간을 1시간 전 30분으로 맞춤.
+
                 base_date = nowdate.toInt()
 
-                if (base_time < time1) //23시 만들기
-                    base_time = time8
-                else if (base_time < time2) //02시 만들기
-                    base_time = time1
-                else if (base_time < time3) //05시 만들기
-                    base_time = time2
-                else if (base_time < time4) //08시 만들기
-                    base_time = time3
-                else if (base_time < time5) //11시 만들기
-                    base_time = time4
-                else if (base_time < time6) //14시 만들기
-                    base_time = time5
-                else if (base_time < time7) //17시 만들기
-                    base_time = time6
-                else if (base_time < time8) //20시 만들기
-                    base_time = time7
-                else base_time = time8 // 23시 만들기
 
                 Log.d("발표 시간", "$base_time")
                 Log.d("발표 날짜", "$base_date")
 
-                fcstDate = nowdate.toInt()
+               fcstDate = nowdate.toInt()
+               fcstTime = nowtime.toInt()
 
-                Log.d("현재 날짜", "$fcstDate")
-                fcstTime = base_time
+                Log.d("현재 시간은", fcstTime.toString())
 
+               Log.d("현재 날짜", "$fcstDate")
                 binding.btn.setOnClickListener {
 
 
@@ -132,7 +120,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     val isGPSEnabled: Boolean = lm.isProviderEnabled(LocationManager.GPS_PROVIDER) // gps 권한 여부 Boolean 표현
                     val isNetworkEnabled: Boolean = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER) // 네트워크 권한 여부 Boolean 표현
 
-                    if (Build.VERSION.SDK_INT >= 26 && //빌드 SDK 버전이 23 이상이고, 퍼미션 체크를 했을때 퍼미션을 허가받았는지 확인. GRANTED (허가받은)
+                    if (Build.VERSION.SDK_INT >= 26 && //빌드 SDK 버전이 26 이상이고, 퍼미션 체크를 했을때 퍼미션을 허가받았는지 확인. GRANTED (허가받은)
                             ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                         ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 0) //허용하지 않았다면 request 코드 0을 부여.
                     } else {
@@ -146,8 +134,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                                 binding.text.text = getLongitude.toString()
                                 binding.text2.text = getLatitude.toString()
 
-                                loca_keung = getLongitude
-                                loca_we = getLatitude
+                                loca_keung = getLongitude //진짜 경도, 격자아님
+                                loca_we = getLatitude // 진짜 위도, 격자아님
 
                                 Toast.makeText(this, "현재위치 불러옴", Toast.LENGTH_SHORT).show()
                             }
@@ -217,80 +205,88 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
                     Log.d("nx", nx)
 
-                    val call = ApiObject.retrofitService.GetWeather(data_type, num_Of_rows, page_No, base_date, base_time, nx, ny, fcstValue, fcstDate, fcstTime) // 날씨 api 불러오기
-                    call.enqueue(object : retrofit2.Callback<WEATHER> { // enqueue == 데이터를 입력하는 함수
-                        override fun onResponse(call: Call<WEATHER>, response: Response<WEATHER>) { //연결 성공 시
-                            if (response.isSuccessful) {
+                    for (i in 0..9) {
 
-                                Log.d("api 작동 1 :", response.body().toString())
-                                Log.d("api 작동 2 : ", response.body()!!.response.body.items.item.toString())
-                                Log.d("api 작동 3 : ", response.body()!!.response.body.items.item[0].category)
+                        page_No++
 
-                                // POP = 강수확률 , PTY = 강수형태, R06 = 6시간 강수량, REH = 습도, SKY = 하늘상태, T3H 3시간 기온,
+                        Log.d("page", page_No.toString())
 
-                                var rain_probabillity = "강수 확률"
-                                var rain_form = "강수 형태"
-                                var humidity = "습도"
-                                var sky_weather = "하늘 상태"
-                                var Temperature = "기온"
+                        val call = ApiObject.retrofitService.GetWeather(data_type, num_Of_rows, page_No, base_date, base_time, nx, ny, fcstValue, fcstDate, fcstTime) // 날씨 api 불러오기
+                        call.enqueue(object : retrofit2.Callback<WEATHER> { // enqueue == 데이터를 입력하는 함수
+                            override fun onResponse(call: Call<WEATHER>, response: Response<WEATHER>) { //연결 성공 시
+                                if (response.isSuccessful) {
 
-                                for (i in response.body()!!.response.body.items.item.indices) {
+                                    //Log.d("api 작동 1 :", response.body().toString())
+                                    Log.d("api 작동 2 : ", response.body()!!.response.body.items.item.toString())
+                                    Log.d("api 작동 3 : ", response.body()!!.response.body.items.item[0].category)
 
-                                    if (response.body()!!.response.body.items.item[i].category == "POP") {
-                                        rain_probabillity = response.body()!!.response.body.items.item[i].fcstValue.toString()
-                                    }
+                                    // POP = 강수확률 , PTY = 강수형태, R06 = 6시간 강수량, REH = 습도, SKY = 하늘상태, T3H 3시간 기온,
 
-                                    if (response.body()!!.response.body.items.item[i].category == "REH") {
-                                        humidity = response.body()!!.response.body.items.item[i].fcstValue.toString()
-                                    }
+                                        var rain_probabillity = arrayOfNulls<String>(3) //"강수 확률"
+                                        var rain_form  = arrayOfNulls<String>(3) //"강수 형태"
+                                        var humidity  = arrayOfNulls<String>(3) //"습도"
+                                        var sky_weather  = arrayOfNulls<String>(3) //"하늘 상태"
+                                        var Temperature  = arrayOfNulls<String>(3) //"기온"
 
-                                    if (response.body()!!.response.body.items.item[i].category == "T3H") {
-                                        Temperature = response.body()!!.response.body.items.item[i].fcstValue.toString() // 기온
-                                    }
+                                        for(j in 0 .. 2) { // 지금 시간 ~ 2시간 후 시간
+                                            if (response.body()!!.response.body.items.item[j].category == "POP") { // 강수 확률
+                                                rain_probabillity.set(i, response.body()!!.response.body.items.item[j].fcstValue.toString())
+                                            }
 
-                                    if (response.body()!!.response.body.items.item[i].category == "SKY") {
-                                        when (response.body()!!.response.body.items.item[i].fcstValue.toInt()) {
-                                            1 -> sky_weather = "맑음"
-                                            3 -> sky_weather = "구름 많음"
-                                            4 -> sky_weather = "흐림"
+                                            if (response.body()!!.response.body.items.item[j].category == "REH") { // 습도
+                                                humidity.set(i, response.body()!!.response.body.items.item[j].fcstValue.toString())
+                                            }
+
+                                            if (response.body()!!.response.body.items.item[j].category == "T3H") {
+                                                Temperature.set(i, response.body()!!.response.body.items.item[j].fcstValue.toString()) // 기온
+                                            }
+
+                                            if (response.body()!!.response.body.items.item[j].category == "SKY") { // 하늘 상태
+                                                when (response.body()!!.response.body.items.item[j].fcstValue.toInt()) {
+                                                    1 -> sky_weather.set(j, "맑음")
+                                                    3 -> sky_weather.set(j, "구름 많음")
+                                                    4 -> sky_weather.set(j, "흐림")
+                                                }
+                                            }
+
+                                            if (response.body()!!.response.body.items.item[i].category == "PTY") {
+                                                when (response.body()!!.response.body.items.item[i].fcstValue.toInt()) { // 강수형태
+                                                    0 -> rain_form.set(j, "맑음")
+                                                    1 -> rain_form.set(j, "비")
+                                                    2 -> rain_form.set(j, "진눈개비")
+                                                    3 -> rain_form.set(j, "눈")
+                                                    4 -> rain_form.set(j, "소나기")
+                                                    5 -> rain_form.set(j, "빗방울")
+                                                    6 -> rain_form.set(j, "진눈개비")
+                                                    7 -> rain_form.set(j, "눈날림")
+                                                }
+                                            }
                                         }
-                                    }
+                                            Log.d("결과는 이렇습니다. : ", "시간 ${response.body()!!.response.body.items.item[j].fcstTime} 의 하늘 상태는 ${sky_weather[j]} 이며 강수 형태는 ${rain_form[j]} 입니다. 강수 확률은 ${rain_probabillity[j]} % 이며, 기온은 ${Temperature[j]} 입니다. 습도는 ${humidity[j]} 입니다.")
 
-                                    if (response.body()!!.response.body.items.item[i].category == "PTY") {
-                                        when (response.body()!!.response.body.items.item[i].fcstValue.toInt()) { // 강수형태
-                                            0 -> rain_form = "맑음"
-                                            1 -> rain_form = "비"
-                                            2 -> rain_form = "진눈개비"
-                                            3 -> rain_form = "눈"
-                                            4 -> rain_form = "소나기"
-                                            5 -> rain_form = "빗방울"
-                                            6 -> rain_form = "진눈개비"
-                                            7 -> rain_form = "눈날림"
-                                        }
+
+                                            Log.d("발표 시간", "$base_time")
+                                            Log.d("발표 날짜", "$base_date")
+                                            Log.d("현재 시간", "$fcstTime")
+                                            Log.d("현재 날짜", "$fcstDate")
+                                            Log.d("현재 위도", "$nx")
+                                            Log.d("현재 경도", "$ny")
+
+
                                     }
                                 }
 
-                                Log.d("결과는 이렇습니다. : ", "현재 시간 $fcstTime 의 하늘 상태는 $sky_weather 이며 강수 형태는 $rain_form 입니다. 강수 확률은 $rain_probabillity % 이며, 기온은 $Temperature 입니다. 습도는 $humidity 입니다.")
-                                Log.d("발표 시간", "$base_time")
-                                Log.d("발표 날짜", "$base_date")
-                                Log.d("현재 시간", "$fcstTime")
-                                Log.d("현재 날짜", "$fcstDate")
-                                Log.d("현재 위도", "$nx")
-                                Log.d("현재 경도", "$ny")
-
+                            override fun onFailure(call: Call<WEATHER>, t: Throwable) { //연결 실패시 시
+                                t.message?.let { Log.d("api fail :", it) }
                             }
-                        }
+                        })
 
-                        override fun onFailure(call: Call<WEATHER>, t: Throwable) { //연결 성공 시
-                            t.message?.let { Log.d("api fail :", it) }
-                        }
-                    })
-
+                    }
                 }
 
 
                 binding.btn2.setOnClickListener {
-                    Toast.makeText(this, "현재 위도는 $nx, 경도는 $ny 입니다.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "현재 격자 x는 $nx, 격자 y는 $ny 입니다.", Toast.LENGTH_LONG).show()
                 }
 
                 binding.naviSetting.setOnClickListener {
@@ -299,8 +295,36 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
                 binding.naviView.setNavigationItemSelectedListener(this) //네비게이션 아이템 클릭 속성 부여.
 
+                binding.bottomNavi.setOnNavigationItemSelectedListener { //바텀 네비게이션 아이템 클릭 속성 부여
+                    when (it.itemId){
+                        R.id.navi1 -> {
+                            set_frag(0)
+                            return@setOnNavigationItemSelectedListener true
+                        }
+                        R.id.navi2 -> {
+                            set_frag(1)
+                            return@setOnNavigationItemSelectedListener true
+                        }
+                        R.id.navi3 -> {
+                            set_frag(2)
+                            return@setOnNavigationItemSelectedListener true
+                        }
+                        R.id.navi4 -> {
+                            set_frag(3)
+                            return@setOnNavigationItemSelectedListener true
+                        }
+                        R.id.navi5 -> {
+                            set_frag(4)
+                            return@setOnNavigationItemSelectedListener true
+                        }
+                        else -> return@setOnNavigationItemSelectedListener false
+                    }
+                }
+
                 binding.move.setOnClickListener {
-                    var intent = Intent(this, login_main::class.java)
+                    var intent = Intent(this, my_location::class.java)
+                    /*intent.putExtra("위도", loca_we.toString())
+                    intent.putExtra("경도", loca_keung.toString())*/
                     startActivity(intent)
                 }
 
@@ -320,7 +344,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.navi_with -> Toast.makeText(applicationContext, "네비", Toast.LENGTH_SHORT).show()
             R.id.navi_my_everyday -> Toast.makeText(applicationContext, "네비", Toast.LENGTH_SHORT).show()
             R.id.navi_Alim -> Toast.makeText(applicationContext, "네비", Toast.LENGTH_SHORT).show()
-
         }
 
         drawer.closeDrawers()
@@ -414,6 +437,17 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         var lng = 0.0
         var x = 0.0
         var y = 0.0
+    }
+
+    private fun set_frag(fragNum: Int) { // 프래그먼트 지정
+
+        val ft = supportFragmentManager.beginTransaction()
+
+        when(fragNum){
+            1 -> ft.replace(R.id.main_frame, my_location()).commit()
+            2 -> ft.replace(R.id.main_frame, login_main_frag()).commit()
+            3 -> ft.replace(R.id.main_frame, my_information()).commit()
+        }
     }
 
 }

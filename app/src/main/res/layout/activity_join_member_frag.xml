@@ -9,13 +9,6 @@
     android:orientation="vertical">
 
     <EditText
-        android:id="@+id/name_input"
-        android:hint = "이름을 입력하세요."
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
-
-    <EditText
         android:id="@+id/email_input"
         android:hint = "이메일을 입력하세요."
         android:layout_width="match_parent"

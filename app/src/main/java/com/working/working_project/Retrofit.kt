@@ -26,7 +26,7 @@ object ApiObject {
 
 interface WeatherInterface{
 
-    @GET("getVilageFcst?serviceKey=Y%2FPMwCd%2Fy9DOSNXSeH3LU3N9Y4XN3rt12jptcwyTHxqGfE8ZeVDZ%2F0t%2FsCbgexqc2Y657jHsq5QNS32qTluCGA%3D%3D") // 예보를 할지, 한시간만 할지 결정하기.
+    @GET("getUltraSrtFcst?serviceKey=Y%2FPMwCd%2Fy9DOSNXSeH3LU3N9Y4XN3rt12jptcwyTHxqGfE8ZeVDZ%2F0t%2FsCbgexqc2Y657jHsq5QNS32qTluCGA%3D%3D") // 예보를 할지, 한시간만 할지 결정하기.
     fun GetWeather(
         @Query("dataType") data_type : String, //쿼리는 주소 '?' 뒷부분의 속성을 작성할 수 있음.
         @Query("numOfRows") num_Of_rows : Int, //Query는 직역하면 질의문이라는 의미

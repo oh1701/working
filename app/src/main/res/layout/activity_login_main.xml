@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".login_main"
+    tools:context=".login_main_frag"
     android:orientation="vertical"
     android:background="@drawable/back_grade"
     android:weightSum="20">
@@ -211,7 +211,7 @@
 
             <TextView
                 android:id="@+id/id_src_text"
-                android:text="계정을 찾고 싶으십니까?"
+                android:text="비밀번호를 찾고 싶으십니까?"
                 android:textColor="@color/white"
                 android:layout_marginRight="5dp"
                 app:layout_constraintTop_toTopOf="parent"
@@ -230,7 +230,7 @@
 
             <TextView
                 android:id="@+id/id_src_btn"
-                android:text="계정 찾기"
+                android:text="비밀번호 찾기"
                 android:textColor="#06F110"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

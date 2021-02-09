@@ -14,8 +14,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.NoActionBar"
         android:usesCleartextTraffic="true">
+        <activity android:name=".my_location"></activity>
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAsextB4kSkvkx0UmzZ_nc1hcx5wXwACCo" />
+
         <activity android:name=".my_information" />
-        <activity android:name=".login_main" />
+        <activity android:name=".login_main_frag" />
         <activity android:name=".join_member_frag" />
         <activity android:name=".MainActivity">
             <intent-filter>

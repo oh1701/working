@@ -1,27 +1,44 @@
 package com.working.working_project
 
+import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.Fragment
+import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseUser
 import com.working.working_project.databinding.ActivityLoginMainBinding
+import com.working.working_project.databinding.ActivityMyLocationBinding
 
-class login_main : AppCompatActivity() {
+class login_main_frag : Fragment() {
 
     val firebaseAuth = FirebaseAuth.getInstance()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        val binding = ActivityLoginMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        val binding = ActivityLoginMainBinding.inflate(layoutInflater, container, false)
 
         binding.joinMemberBtn.setOnClickListener {
-            val intent = Intent(this, join_member_frag::class.java)
+            val intent = Intent(activity!!, join_member_frag::class.java)
+            intent.putExtra("join_member", "join_member")
             startActivity(intent)
+        }
+
+        binding.idSrcBtn.setOnClickListener {
+            val intent = Intent(activity!!, join_member_frag::class.java)
+            intent.putExtra("src_pass", "src_pass")
+            startActivity(intent)
+
         }
 
         binding.join.setOnClickListener {
@@ -30,11 +47,22 @@ class login_main : AppCompatActivity() {
 
             {
                 firebaseAuth.signInWithEmailAndPassword(binding.idSel.text.toString(), binding.passSel.text.toString())
-                        .addOnCompleteListener(this) {
+                        .addOnCompleteListener(activity!!) {
                             if (it.isSuccessful) {
                                 movepage(firebaseAuth.currentUser) //파이어베이스 유저정보 확인
                             } else {
-                                Toast.makeText(this, "아이디나 패스워드가 올바르지 않습니다.", Toast.LENGTH_SHORT).show()
+                                try{
+                                    throw it.exception!!
+                                }
+                                catch (FirebaseAuth_notsrc_member : FirebaseAuthInvalidUserException){ // 회원이 등록되어 있지 않음.
+                                    Toast.makeText(activity!!, "아이디나 패스워드가 올바르지 않습니다.", Toast.LENGTH_SHORT).show()
+                                }
+                                catch (firebaseException: FirebaseException) { //네트워크 미연결 시 나타나는 메세지.
+                                    Toast.makeText(activity!!, "네트워크 미연결", Toast.LENGTH_SHORT).show()
+                                }
+
+
+                                Log.d("오류", it.exception.toString())
                             }
 
                         }
@@ -42,34 +70,55 @@ class login_main : AppCompatActivity() {
 
             else
             {
-                Toast.makeText(this, "아이디나 패스워드를 입력해주세요.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(activity!!, "아이디나 패스워드를 입력해주세요.", Toast.LENGTH_SHORT).show()
             }
 
         }
+        return binding.root
     }
 
     fun movepage(user: FirebaseUser?){
         if(user != null){ //유저가 파이어베이스에 존재할시
-            Toast.makeText(this, "아이디 확인을 위해 최초 1회, 이메일 인증이 필요합니다.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(activity!!, "아이디 확인을 위해 최초 1회, 이메일 인증이 필요합니다.", Toast.LENGTH_SHORT).show()
 
-            if(firebaseAuth.currentUser!!.isEmailVerified){ // 이메일 인증 확인하기.
-                Toast.makeText(this, "이미 이메일 인증을 하였습니다..", Toast.LENGTH_SHORT).show()  //돼있으면
-                //메인화면 이동
-            }
+            val dialog = AlertDialog.Builder(activity!!)
+            dialog.setTitle("이메일 인증이 필요합니다.")
+            dialog.setMessage("확인을 위해 최초 1회, 이메일 인증이 필요합니다. 인증하시겠습니까?")
 
-            else
-            { //안되어있으면
-                firebaseAuth.currentUser!!.sendEmailVerification() //이메일 인증 전송
+            dialog.setPositiveButton("인증하기") //인증하기 버튼 누를 시
+            { DialogInterface, i ->
+
+                if(firebaseAuth.currentUser!!.isEmailVerified){ // 이메일 인증 확인하기.
+                    Toast.makeText(activity!!, "이미 이메일 인증을 하였습니다..", Toast.LENGTH_SHORT).show()  //돼있으면
+                    //메인화면 이동
+                    val intent = Intent(activity!!, MainActivity::class.java)
+                    intent.putExtra("유저 정보" , firebaseAuth.currentUser!!)
+                    startActivity(intent)
+                }
+
+                else
+                { //안되어있으면
+                    firebaseAuth.currentUser!!.sendEmailVerification() //이메일 인증 전송
                         .addOnCompleteListener {
                             if (it.isSuccessful) {
-                                Toast.makeText(this, "이메일 인증을 전송 하였습니다..", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(activity!!, "이메일 인증을 전송 하였습니다.", Toast.LENGTH_SHORT).show()
                             }
                             else
                             {
-                                Toast.makeText(this, it.exception.toString(), Toast.LENGTH_SHORT).show() // 오류 메세지 송출
+                                Toast.makeText(activity!!, "이메일 전송이 실패하였습니다. 가입된 이메일이 아니거나, 네트워크 상태가 불량합니다.", Toast.LENGTH_SHORT).show() // 오류 메세지 송출
+                                Log.d("오류", it.exception.toString())
                             }
                         }
+                }
             }
+
+            dialog.setNegativeButton("취소") //취소 버튼 누를 시
+            {
+                DialogInterface, i ->
+                false
+            }
+            dialog.show()
+
         }
     }
 

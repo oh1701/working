@@ -40,13 +40,15 @@ android {
 dependencies {
     //네이버 로그인
     implementation 'com.naver.nid:naveridlogin-android-sdk:4.2.6'
-    implementation 'com.google.firebase:firebase-database:19.2.1'
+    implementation 'com.google.firebase:firebase-database:19.6.0'
     implementation 'com.google.firebase:firebase-auth:20.0.2'// import from jcenter
 
     // naveridlogin dependencies
     def android_x_version = "1.0.0"
     implementation "androidx.appcompat:appcompat:$android_x_version"
     implementation "androidx.legacy:legacy-support-core-utils:$android_x_version"
+
+    //noinspection GradleDependency
     implementation "androidx.browser:browser:$android_x_version"
     implementation "androidx.legacy:legacy-support-v4:$android_x_version"
 
@@ -58,14 +60,21 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:26.4.0')
     implementation('com.google.firebase:firebase-analytics-ktx')
 
+    //구글 맵
+    implementation 'com.google.android.gms:play-services-maps:17.0.0'
+    implementation 'com.google.android.gms:play-services-location:17.1.0'
+
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'androidx.core:core-ktx:1.3.2'
     implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'com.google.android.material:material:1.2.1'
+    implementation 'com.google.android.material:material:1.3.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
-    testImplementation 'junit:junit:4.+'
+    testImplementation 'junit:junit:4.13.1'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+
+    implementation 'com.google.android.gms:play-services-maps:17.0.0'
+    implementation 'com.google.android.gms:play-services-location:17.1.0'
 
     implementation 'com.squareup.retrofit2:retrofit:2.9.0' // 레트로핏
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0' // 레트로핏 gson
