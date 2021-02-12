@@ -24,13 +24,15 @@ import com.google.android.material.navigation.NavigationView
 import com.working.working_project.databinding.ActivityMainBinding
 import retrofit2.Call
 import retrofit2.Response
+import retrofit2.http.GET
+import retrofit2.http.Query
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.properties.Delegates
 
-// 카테고리 별 리스트에 추가하는거 찾아내기.
+// 출시하기 전 날씨 APi 이용 저작권 어떻게 하는지 확인하기 (표시해야하는지 등)
 
 val gpsLocationListener = object : LocationListener {
     override fun onLocationChanged(location: Location) {
@@ -51,7 +53,7 @@ val gpsLocationListener = object : LocationListener {
 }
 
 val data_type = "JSON"
-val num_Of_rows = 6
+var num_Of_rows = 0
 var page_No = 0
 /*
 var base_time = 2300
@@ -211,82 +213,124 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     Log.d("nx", nx)
 
 
-                    var rain_probabillity = arrayOfNulls<String>(3) //"강수 확률"
                     var rain_form = arrayOfNulls<String>(3) //"강수 형태"
                     var humidity = arrayOfNulls<String>(3) //"습도"
                     var sky_weather = arrayOfNulls<String>(3) //"하늘 상태"
                     var Temperature = arrayOfNulls<String>(3) //"기온"
 
-                    for (i in 0..9) {
+                    when(base_time)
+                    {
+                        "0045" -> num_Of_rows = 6
+                        "0145" -> num_Of_rows = 5
+                        "0245" -> num_Of_rows = 4
+                        "0345" -> num_Of_rows = 6
+                        "0445" -> num_Of_rows = 5
+                        "0545" -> num_Of_rows = 4
+                        "0645" -> num_Of_rows = 6
+                        "0745" -> num_Of_rows = 5
+                        "0845" -> num_Of_rows = 4
+                        "0945" -> num_Of_rows = 6
+                        "1045" -> num_Of_rows = 5
+                        "1145" -> num_Of_rows = 4
+                        "1245" -> num_Of_rows = 6
+                        "1345" -> num_Of_rows = 5
+                        "1445" -> num_Of_rows = 4
+                        "1545" -> num_Of_rows = 6
+                        "1645" -> num_Of_rows = 5
+                        "1745" -> num_Of_rows = 4
+                        "1845" -> num_Of_rows = 6
+                        "1945" -> num_Of_rows = 5
+                        "2045" -> num_Of_rows = 4
+                        "2145" -> num_Of_rows = 6
+                        "2245" -> num_Of_rows = 5
+                        "2345" -> num_Of_rows = 4
 
+                    }
+
+                    for(i in 0 .. 9)
+                    {
                         page_No++
-
-                        Log.d("page", page_No.toString())
-
                         val call = ApiObject.retrofitService.GetWeather(data_type, num_Of_rows, page_No, base_date, base_time, nx, ny, fcstValue, fcstDate, fcstTime) // 날씨 api 불러오기
+
                         call.enqueue(object : retrofit2.Callback<WEATHER> { // enqueue == 데이터를 입력하는 함수
                             override fun onResponse(call: Call<WEATHER>, response: Response<WEATHER>) { //연결 성공 시
+
                                 if (response.isSuccessful) {
+
+                                    // 배열 [2]가 널일때 까지만 넣기.
 
                                     Log.d("api 작동 1 :", response.body().toString())
                                     //Log.d("api 작동 2 : ", response.body()!!.response.body.items.item.toString())
-                                    //Log.d("api 작동 3 : ", response.body()!!.response.body.items.item[0].category)
+                                    Log.d("api 작동 3 : ", response.body()!!.response.body.items.item[0].category)
 
                                     // POP = 강수확률 , PTY = 강수형태, R06 = 6시간 강수량, REH = 습도, SKY = 하늘상태, T3H 3시간 기온,
 
-                                    /*for (j in 0..2) { // 지금 시간 ~ 2시간 후 시간 여기부분 고치기
-                                        if (response.body()!!.response.body.items.item[i].category == "POP") { // 강수 확률
-                                            rain_probabillity.set(j, response.body()!!.response.body.items.item[i].fcstValue.toString())
-                                        }
+                                    var total = num_Of_rows - 1
 
-                                        if (response.body()!!.response.body.items.item[i].category == "REH") { // 습도
-                                            humidity.set(j, response.body()!!.response.body.items.item[i].fcstValue.toString())
-                                        }
+                                    for (e in 0.. total) {
 
-                                        if (response.body()!!.response.body.items.item[i].category == "T3H") {
-                                            Temperature.set(j, response.body()!!.response.body.items.item[i].fcstValue.toString()) // 기온
-                                        }
+                                        for (j in 0..2) { // 지금 시간 ~ 2시간 후 시간 여기부분 고치기
 
-                                        if (response.body()!!.response.body.items.item[j].category == "SKY") { // 하늘 상태
-                                            when (response.body()!!.response.body.items.item[j].fcstValue.toInt()) {
-                                                1 -> sky_weather.set(j, "맑음")
-                                                3 -> sky_weather.set(j, "구름 많음")
-                                                4 -> sky_weather.set(j, "흐림")
+                                            if (response.body()!!.response.body.items.item[e].category == "REH") { // 습도
+                                                if (humidity[j] == null)
+                                                    humidity.set(j, response.body()!!.response.body.items.item[e].fcstValue.toString())
                                             }
-                                        }
 
-                                        if (response.body()!!.response.body.items.item[j].category == "PTY") {
-                                            when (response.body()!!.response.body.items.item[j].fcstValue.toInt()) { // 강수형태
-                                                0 -> rain_form.set(j, "맑음")
-                                                1 -> rain_form.set(j, "비")
-                                                2 -> rain_form.set(j, "진눈개비")
-                                                3 -> rain_form.set(j, "눈")
-                                                4 -> rain_form.set(j, "소나기")
-                                                5 -> rain_form.set(j, "빗방울")
-                                                6 -> rain_form.set(j, "진눈개비")
-                                                7 -> rain_form.set(j, "눈날림")
+                                            if (response.body()!!.response.body.items.item[e].category == "T1H") {
+                                                if (Temperature[j] == null)
+                                                    Temperature.set(j, response.body()!!.response.body.items.item[e].fcstValue.toString()) // 기온
                                             }
+
+                                            if (response.body()!!.response.body.items.item[e].category == "SKY") { // 하늘 상태
+                                                if (sky_weather[j] == null) {
+                                                    when (response.body()!!.response.body.items.item[e].fcstValue.toInt()) {
+                                                        1 -> sky_weather.set(j, "맑음")
+                                                        3 -> sky_weather.set(j, "구름 많음")
+                                                        4 -> sky_weather.set(j, "흐림")
+                                                    }
+                                                }
+                                            }
+
+                                            if (response.body()!!.response.body.items.item[e].category == "PTY") {
+                                                if (rain_form[j] == null) {
+                                                    when (response.body()!!.response.body.items.item[e].fcstValue.toInt()) { // 강수형태
+                                                        0 -> rain_form.set(j, "비 없음")
+                                                        1 -> rain_form.set(j, "비")
+                                                        2 -> rain_form.set(j, "진눈개비")
+                                                        3 -> rain_form.set(j, "눈")
+                                                        4 -> rain_form.set(j, "소나기")
+                                                        5 -> rain_form.set(j, "빗방울")
+                                                        6 -> rain_form.set(j, "진눈개비")
+                                                        7 -> rain_form.set(j, "눈날림")
+                                                    }
+                                                }
+                                            }
+                                            if (i == 9 && e == total)
+                                                Log.d("결과는 이렇습니다. : ", "현재 시간 ${response.body()!!.response.body.items.item[1].fcstTime} 의 하늘 상태는 ${sky_weather[1]} 이며 강수 형태는 ${rain_form[1]} 입니다. " +
+                                                        "기온은 ${Temperature[1]} 입니다. 습도는 ${humidity[1]} 입니다.")
+
                                         }
 
-                                        Log.d("결과는 이렇습니다. : ", "시간 ${response.body()!!.response.body.items.item[j].fcstTime} 의 하늘 상태는 ${sky_weather[j]} 이며 강수 형태는 ${rain_form[j]} 입니다. 강수 확률은 ${rain_probabillity[j]} % 이며, 기온은 ${Temperature[j]} 입니다. 습도는 ${humidity[j]} 입니다.")
-
-                                    }*/
-
+                                    }
                                 }
                             }
 
                             override fun onFailure(call: Call<WEATHER>, t: Throwable) { //연결 실패시 시
                                 Log.d("api fail :", t.toString())
                             }
+
                         })
+
                     }
 
-                    Log.d("발표 시간", "$base_time")
-                    Log.d("발표 날짜", "$base_date")
-                    Log.d("현재 시간", "$fcstTime")
-                    Log.d("현재 날짜", "$fcstDate")
-                    Log.d("현재 위도", "$nx")
-                    Log.d("현재 경도", "$ny")
+
+                        Log.d("발표 시간", "$base_time")
+                        Log.d("발표 날짜", "$base_date")
+                        Log.d("현재 시간", "$fcstTime")
+                        Log.d("현재 날짜", "$fcstDate")
+                        Log.d("현재 위도", "$nx")
+                        Log.d("현재 경도", "$ny")
+
                 }
 
 
