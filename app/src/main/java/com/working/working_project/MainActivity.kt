@@ -34,24 +34,6 @@ import kotlin.properties.Delegates
 
 // 출시하기 전 날씨 APi 이용 저작권 어떻게 하는지 확인하기 (표시해야하는지 등)
 
-val gpsLocationListener = object : LocationListener {
-    override fun onLocationChanged(location: Location) {
-        val provider: String = location.provider
-        val longitude: Double = location.longitude // 경도
-        val latitude: Double = location.latitude // 위도
-        val altitude: Double = location.altitude // 고도
-    }
-
-    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
-    }
-
-    override fun onProviderEnabled(provider: String) {
-    }
-
-    override fun onProviderDisabled(provider: String) {
-    }
-}
-
 val data_type = "JSON"
 var num_Of_rows = 0
 var page_No = 0
@@ -71,6 +53,24 @@ var fcstTime by Delegates.notNull<String>()
 
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+
+    val gpsLocationListener = object : LocationListener {
+        override fun onLocationChanged(location: Location) {
+            val provider: String = location.provider
+            val longitude: Double = location.longitude // 경도
+            val latitude: Double = location.latitude // 위도
+            val altitude: Double = location.altitude // 고도
+        }
+
+        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
+        }
+
+        override fun onProviderEnabled(provider: String) {
+        }
+
+        override fun onProviderDisabled(provider: String) {
+        }
+    }
 
     var TO_GRID = 0
     var TO_GPS = 1
