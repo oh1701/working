@@ -40,8 +40,6 @@ android {
 dependencies {
     //네이버 로그인
     implementation 'com.naver.nid:naveridlogin-android-sdk:4.2.6'
-    implementation 'com.google.firebase:firebase-database:19.6.0'
-    implementation 'com.google.firebase:firebase-auth:20.0.2'// import from jcenter
 
     // naveridlogin dependencies
     def android_x_version = "1.0.0"
@@ -59,6 +57,8 @@ dependencies {
     //firebase
     implementation platform('com.google.firebase:firebase-bom:26.4.0')
     implementation('com.google.firebase:firebase-analytics-ktx')
+    implementation 'com.google.firebase:firebase-database:19.6.0'
+    implementation 'com.google.firebase:firebase-auth:20.0.2'// import from jcenter
 
     //구글 맵
     implementation 'com.google.android.gms:play-services-maps:17.0.0'

@@ -21,6 +21,9 @@ import androidx.fragment.app.FragmentManager
 import com.google.android.gms.dynamic.SupportFragmentWrapper
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.material.navigation.NavigationView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthSettings
+import com.google.firebase.ktx.Firebase
 import com.working.working_project.databinding.ActivityMainBinding
 import retrofit2.Call
 import retrofit2.Response
@@ -53,6 +56,8 @@ var fcstTime by Delegates.notNull<String>()
 
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+
+    val firebaseAuth = FirebaseAuth.getInstance()
 
     val gpsLocationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
@@ -306,8 +311,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                                                 }
                                             }
                                             if (i == 9 && e == total)
-                                                Log.d("결과는 이렇습니다. : ", "현재 시간 ${response.body()!!.response.body.items.item[1].fcstTime} 의 하늘 상태는 ${sky_weather[1]} 이며 강수 형태는 ${rain_form[1]} 입니다. " +
-                                                        "기온은 ${Temperature[1]} 입니다. 습도는 ${humidity[1]} 입니다.")
+                                                Log.d("결과는 이렇습니다. : ", "현재 시간 ${response.body()!!.response.body.items.item[0].fcstTime} 의 하늘 상태는 ${sky_weather[0]} 이며 강수 형태는 ${rain_form[0]} 입니다. " +
+                                                        "기온은 ${Temperature[0]} 입니다. 습도는 ${humidity[0]} 입니다.")
 
                                         }
 
@@ -378,6 +383,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 }
 
 
+
         } //Oncreate 끝
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean { //네비게이션 아이템 선택 시
@@ -393,6 +399,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.navi_with -> Toast.makeText(applicationContext, "네비", Toast.LENGTH_SHORT).show()
             R.id.navi_my_everyday -> Toast.makeText(applicationContext, "네비", Toast.LENGTH_SHORT).show()
             R.id.navi_Alim -> Toast.makeText(applicationContext, "네비", Toast.LENGTH_SHORT).show()
+
+            R.id.navi_login_logout -> {
+                if (firebaseAuth.currentUser != null) {
+                    firebaseAuth.signOut()
+                    Toast.makeText(this, "로그아웃", Toast.LENGTH_SHORT).show()
+                }
+                else
+                    Toast.makeText(this, "로그인 상태가 아닙니다.", Toast.LENGTH_SHORT).show()
+            }
         }
 
         drawer.closeDrawers()
@@ -496,6 +511,17 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             1 -> ft.replace(R.id.main_frame, my_location()).commit()
             2 -> ft.replace(R.id.main_frame, login_main_frag()).commit()
             3 -> ft.replace(R.id.main_frame, my_information()).commit()
+            4 -> ft.replace(R.id.main_frame, community()).commit()
+        }
+    }
+
+    fun firebase(){
+
+        if(intent.hasExtra("로그인")) {
+            if (firebaseAuth.currentUser != null)
+                Toast.makeText(this, "정보 있음", Toast.LENGTH_SHORT).show()
+            else
+                Toast.makeText(this, "정보 없음", Toast.LENGTH_SHORT).show()
         }
     }
 

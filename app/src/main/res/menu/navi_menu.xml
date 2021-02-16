@@ -87,6 +87,11 @@
                 android:icon = "@drawable/ic_baseline_arrow_right_24"
                 android:title="알림"/>
 
+            <item
+            android:id="@+id/navi_login_logout"
+            android:icon = "@drawable/ic_baseline_arrow_right_24"
+            android:title=""/>
+
         </menu>
 
     </item>

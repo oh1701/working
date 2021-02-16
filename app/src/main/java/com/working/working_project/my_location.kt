@@ -46,20 +46,37 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
     lateinit var EndLatLng:LatLng
     lateinit var lm:LocationManager
     lateinit var middleLatLng:LatLng
-    lateinit var a_LatLng:LatLng
+    lateinit var distance:String
+
+    var lat1 by Delegates.notNull<Double>()
+    var lat2 by Delegates.notNull<Double>()
+    var lng1 by Delegates.notNull<Double>()
+    var lng2 by Delegates.notNull<Double>()
+
 
     //var walk_checkd:Boolean = false
     var walk_checkd = 0
+    var count = 0
+    var count2 = 0
 
     val gpsLocationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) { //위치 값이 변경되면 실행되는 함수
             location?.let {
                 middleLatLng = LatLng(it.latitude, it.longitude)
                 Log.d("중간 값은", "${middleLatLng.latitude} and ${middleLatLng.longitude}")
+                if(count == 1) {
+                    lat2 = it.latitude
+                    lng2 = it.longitude
+                    Log.d("lat", lat2.toString())
+                    count2 = 1
+                }
             }
 
             if(walk_checkd == 1) {
                 StartLatLng = LatLng(nx.toDouble(), ny.toDouble()) //시작 위치 지정, 1번만 설정된다.
+
+                lat1 = nx.toDouble() //라티튜드
+                lng1 = ny.toDouble() // 롱티튜드
 
                 val walk_line_option = PolylineOptions().add(StartLatLng).add(middleLatLng).width(8F).color(BLUE).geodesic(true) // 시작 ~ 끝까지 라인의 옵션. 굵기, 색상, 표시할지 구분
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(middleLatLng, 17F))
@@ -133,13 +150,13 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
             }
                 lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
                         2000, //몇초
-                        0F, // 몇미터
+                        1F, // 몇미터
                         gpsLocationListener) //위치 업데이트*/
 
 
                 lm.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                         2000, //몇초
-                        2F, // 몇미터
+                        1F, // 몇미터
                         gpsLocationListener)
 
             binding.runEnd.setOnClickListener {
@@ -147,7 +164,14 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
             }
         }//위치 찾기 끝
 
-        check_walk_btn()
+        run()
+
+        binding.runEnd.setOnClickListener {
+            if (count == 1 && count2 == 1) {
+                distance = runEnd(lat1, lng1, lat2, lng2).toString()
+                Log.d("거리는", distance)
+            }
+        }
 
         val google_map = childFragmentManager.findFragmentById(R.id.google_map) as SupportMapFragment // fragment 아래의 fragment라 그런지 chiled 사용해서 되었음.
         google_map.getMapAsync(this) //getMapAsync 로 호출,
@@ -173,7 +197,7 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
     }
 
 
-    fun check_walk_btn() {
+    fun run() {
 
         binding.runStart.setOnClickListener {
             walk_checkd = 1
@@ -199,6 +223,7 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
         binding.runEnd.setOnClickListener {
             walk_checkd = 2
             Toast.makeText(activity , "달리기 종료", Toast.LENGTH_SHORT).show()
+            count = 1
 
             /*if(walk_checkd == true) {
                 walk_checkd = false
@@ -214,6 +239,19 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
 
         }
     }
-        //위치에 따라 가까운 이들과 SNS, 커뮤니티 사용할 수 있게 만들기.
+
+    fun runEnd(lat1 : Double, lng1 : Double, lat2 : Double, lng2:Double): Float {
+
+        val myLoc = Location(LocationManager.NETWORK_PROVIDER)
+        val targetLoc = Location(LocationManager.NETWORK_PROVIDER)
+        myLoc.latitude= lat1
+        myLoc.longitude = lng1
+
+        targetLoc.latitude= lat2
+        targetLoc.longitude = lng2
+
+        return myLoc.distanceTo(targetLoc)
+
+    }
 
 }

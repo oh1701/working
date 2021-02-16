@@ -60,6 +60,7 @@ class join_member_frag : AppCompatActivity() {
                                                 Toast.makeText(this, "네트워크 미연결", Toast.LENGTH_SHORT).show()
                                             }
 
+                                            Log.d("오류", it.exception.toString())
                                         }
 
                                     }

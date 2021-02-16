@@ -14,7 +14,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.NoActionBar"
         android:usesCleartextTraffic="true">
-        <activity android:name=".my_location"></activity>
+        <activity android:name=".community"></activity>
+        <activity android:name=".my_location" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"

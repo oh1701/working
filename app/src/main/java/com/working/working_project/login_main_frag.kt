@@ -16,6 +16,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseUser
 import com.working.working_project.databinding.ActivityLoginMainBinding
@@ -43,22 +44,20 @@ class login_main_frag : Fragment() {
 
         binding.join.setOnClickListener {
 
-            if(binding.idSel.length() > 0 && binding.passSel.length() > 0)
-
-            {
+            if (binding.idSel.length() > 0 && binding.passSel.length() > 0) {
                 firebaseAuth.signInWithEmailAndPassword(binding.idSel.text.toString(), binding.passSel.text.toString())
                         .addOnCompleteListener(activity!!) {
-                            if (it.isSuccessful) {
+                            if (it.isSuccessful) { // 성공시
                                 movepage(firebaseAuth.currentUser) //파이어베이스 유저정보 확인
                             } else {
-                                try{
+                                try {
                                     throw it.exception!!
-                                }
-                                catch (FirebaseAuth_notsrc_member : FirebaseAuthInvalidUserException){ // 회원이 등록되어 있지 않음.
-                                    Toast.makeText(activity!!, "아이디나 패스워드가 올바르지 않습니다.", Toast.LENGTH_SHORT).show()
-                                }
-                                catch (firebaseException: FirebaseException) { //네트워크 미연결 시 나타나는 메세지.
-                                    Toast.makeText(activity!!, "네트워크 미연결", Toast.LENGTH_SHORT).show()
+                                } catch (FirebaseAuth_notsrc_member: FirebaseAuthInvalidUserException) { // 회원이 등록되어 있지 않음.
+                                    Toast.makeText(activity!!, "아이디가 올바르지 않습니다.", Toast.LENGTH_SHORT).show()
+                                } catch (FirebaseAuth_notsrc_password: FirebaseAuthInvalidCredentialsException) { // 회원이 등록되어 있지 않음.
+                                    Toast.makeText(activity!!, "패스워드가 올바르지 않습니다.", Toast.LENGTH_SHORT).show()
+                                } catch (firebaseException: FirebaseException) { //네트워크 미연결 시 나타나는 메세지.
+                                    Toast.makeText(activity!!, "네트워크를 확인해주세요.", Toast.LENGTH_SHORT).show()
                                 }
 
 
@@ -67,9 +66,7 @@ class login_main_frag : Fragment() {
 
                         }
             }
-
-            else
-            {
+            else {
                 Toast.makeText(activity!!, "아이디나 패스워드를 입력해주세요.", Toast.LENGTH_SHORT).show()
             }
 
@@ -77,54 +74,54 @@ class login_main_frag : Fragment() {
         return binding.root
     }
 
-    fun movepage(user: FirebaseUser?){
-        if(user != null){ //유저가 파이어베이스에 존재할시
-            Toast.makeText(activity!!, "아이디 확인을 위해 최초 1회, 이메일 인증이 필요합니다.", Toast.LENGTH_SHORT).show()
+    fun movepage(user: FirebaseUser?) {
 
-            val dialog = AlertDialog.Builder(activity!!)
-            dialog.setTitle("이메일 인증이 필요합니다.")
-            dialog.setMessage("확인을 위해 최초 1회, 이메일 인증이 필요합니다. 인증하시겠습니까?")
+        if (firebaseAuth.currentUser!!.isEmailVerified) { // 이메일 인증 됐을 시
 
-            dialog.setPositiveButton("인증하기") //인증하기 버튼 누를 시
-            { DialogInterface, i ->
+            Toast.makeText(activity!!, "이미 이메일 인증을 하였습니다..", Toast.LENGTH_SHORT).show()  //돼있으면
+            //메인화면 이동
+            val intent = Intent(activity!!, MainActivity::class.java)
+            intent.putExtra("로그인", firebaseAuth.currentUser!!)
+            startActivity(intent)
+        } else { //이메일 인증 확인 안됐을 시
+            if (user != null) { //유저가 파이어베이스에 존재할시
+                Toast.makeText(activity!!, "아이디 확인을 위해 최초 1회, 이메일 인증이 필요합니다.", Toast.LENGTH_SHORT).show()
 
-                if(firebaseAuth.currentUser!!.isEmailVerified){ // 이메일 인증 확인하기.
-                    Toast.makeText(activity!!, "이미 이메일 인증을 하였습니다..", Toast.LENGTH_SHORT).show()  //돼있으면
-                    //메인화면 이동
-                    val intent = Intent(activity!!, MainActivity::class.java)
-                    intent.putExtra("유저 정보" , firebaseAuth.currentUser!!)
-                    startActivity(intent)
-                }
+                val dialog = AlertDialog.Builder(activity!!)
+                dialog.setTitle("이메일 인증이 필요합니다.")
+                dialog.setMessage("확인을 위해 최초 1회, 이메일 인증이 필요합니다. 인증하시겠습니까?")
 
-                else
-                { //안되어있으면
+                dialog.setPositiveButton("인증하기") //인증하기 버튼 누를 시
+                { DialogInterface, i ->
+
                     firebaseAuth.currentUser!!.sendEmailVerification() //이메일 인증 전송
-                        .addOnCompleteListener {
-                            if (it.isSuccessful) {
-                                Toast.makeText(activity!!, "이메일 인증을 전송 하였습니다.", Toast.LENGTH_SHORT).show()
+                            .addOnCompleteListener {
+                                if (it.isSuccessful) {
+                                    Toast.makeText(activity!!, "이메일 인증을 전송 하였습니다.", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(activity!!, "이메일 전송이 실패하였습니다. 가입된 이메일이 아니거나, 네트워크 상태가 불량합니다.", Toast.LENGTH_SHORT).show() // 오류 메세지 송출
+                                    Log.d("오류", it.exception.toString())
+                                }
                             }
-                            else
-                            {
-                                Toast.makeText(activity!!, "이메일 전송이 실패하였습니다. 가입된 이메일이 아니거나, 네트워크 상태가 불량합니다.", Toast.LENGTH_SHORT).show() // 오류 메세지 송출
-                                Log.d("오류", it.exception.toString())
-                            }
-                        }
                 }
-            }
 
-            dialog.setNegativeButton("취소") //취소 버튼 누를 시
-            {
-                DialogInterface, i ->
-                false
-            }
-            dialog.show()
+                dialog.setNegativeButton("취소") //취소 버튼 누를 시
 
+                { DialogInterface, i ->
+
+                    false
+                }
+
+                dialog.show()
+            } else {
+                Toast.makeText(activity!!, "존재하지 않는 아이디입니다.", Toast.LENGTH_SHORT).show()
+            }
         }
-    }
 
-    /*private val mAuth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
+        /*private val mAuth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
 user = mAuth.currentUser?.uid.toString()
 만약 사용자가 앱에 로그인되어 있다면, 해당 사용자의 uid가 표기되고, 로그인되어있지 않으면 null이 표기됩니다.
      */
 
+    }
 }
