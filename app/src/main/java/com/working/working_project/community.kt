@@ -18,9 +18,7 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
     val firebaseDatabase = FirebaseDatabase.getInstance().getReference() // 파이어베이스 실시간 db 관리 객체 얻어오기(Root 가져옴.) ()는 최상위 값.
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val binding = ActivityCommunityBinding.inflate(layoutInflater, container, false)
-
-
+        binding = ActivityCommunityBinding.inflate(layoutInflater, container, false)
 
         binding.btn1.setOnClickListener {
             val getedt = binding.edt.text.toString()

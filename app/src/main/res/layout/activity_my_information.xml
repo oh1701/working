@@ -73,7 +73,7 @@
                 android:layout_marginTop="7dp"
                 android:layout_weight="1">
                 <TextView
-                    android:id="@+id/member_sex"
+                    android:id="@+id/member_gender"
                     android:text="성별"
                     android:textColor="@color/black"
 
@@ -178,8 +178,6 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </LinearLayout>
-
-
 
 
 
