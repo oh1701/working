@@ -90,18 +90,14 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
                 lng2 = it.longitude
 
                 middleLatLng = LatLng(it.latitude, it.longitude)
-                Log.d("중간 값은", "${middleLatLng?.latitude} and ${middleLatLng?.longitude}")
-                Log.d("미들1번째 확인", middleLatLng.toString())
-
-                poly_lat1 = middleLatLng // 가장 최근의 위치
 
                 if(walk_checkd == 0 && googleMap != null) {
                     googleMap!!.moveCamera(CameraUpdateFactory.newLatLngZoom(middleLatLng, 17F))
-                    Log.d("확인", "위치값 변경에서")
                 }
             }
 
             if(walk_checkd == 1 && positi == 1) {
+                Log.d("확인", "폴리라인 변경에서")
                 polyline()
             }
         }
@@ -266,12 +262,12 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
 
                     lm.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                             2000, //몇초
-                            0F, // 몇미터
+                            1F, // 몇미터
                             gpsLocationListener)
 
                     lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
                             2000, //몇초
-                            0F, // 몇미터
+                            1F, // 몇미터
                             gpsLocationListener) //위치 업데이트
 
                     if(googleMap != null && nx != "0" && ny != "0")
@@ -295,13 +291,13 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
         Log.d("확인 포지 googleMap", googleMap.toString())
 
         if (walk_checkd != 1 && positi == 1 && googleMap != null) {
-                googleMap!!.clear()
-                addmarker()
+            googleMap!!.clear()
+            addmarker()
 
-                Log.d("확인 포지 run", positi.toString())
+            Log.d("확인 포지 run", positi.toString())
 
-                walk_checkd = 1
-                Toast.makeText(activity, "달리기 시작", Toast.LENGTH_SHORT).show()
+            walk_checkd = 1
+            Toast.makeText(activity, "달리기 시작", Toast.LENGTH_SHORT).show()
         }
 
         binding.runEnd.setOnClickListener {
@@ -380,47 +376,45 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
 
     fun addmarker(){
 
-            val LatLng = LatLng(nx.toDouble(), ny.toDouble()) //위도 경도 지정
-            Log.d("nx는 :", nx)
-            Log.d("ny는 :", ny)
+        val LatLng = LatLng(nx.toDouble(), ny.toDouble()) //위도 경도 지정
+        Log.d("nx는 :", nx)
+        Log.d("ny는 :", ny)
 
-            Log.d("확인", "애드마커 변경에서")
+        googleMap!!.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng, 17F)) //위도 경도에 맞는 위치로 카메라를 이동시킴.
 
-            googleMap!!.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng, 17F)) //위도 경도에 맞는 위치로 카메라를 이동시킴.
+        val marker = MarkerOptions() //마커 설정
+        marker.position(LatLng)
+        marker.title("시작 위치")
 
-            val marker = MarkerOptions() //마커 설정
-            marker.position(LatLng)
-            marker.title("시작 위치")
-
-            googleMap!!.addMarker(marker) // 지정해던 설정으로 마커 추가
+        googleMap!!.addMarker(marker) // 지정해던 설정으로 마커 추가
     }
 
     fun polyline(){
+        poly_lat1 = middleLatLng
+        Log.d("확인폴", "$poly_lat1, $poly_lat2")
+
         if(walk_line_option == null && middleLatLng != null) {
 
             StartLatLng = LatLng(nx.toDouble(), ny.toDouble())
-            walk_line_option = PolylineOptions().add(StartLatLng).width(8F).color(BLUE).geodesic(true) // 시작 ~ 끝까지 라인의 옵션. 굵기, 색상, 표시할지 구분
+            walk_line_option = PolylineOptions().add(StartLatLng).add(middleLatLng).width(8F).color(BLUE).geodesic(true) // 시작 ~ 끝까지 라인의 옵션. 굵기, 색상, 표시할지 구분
             googleMap!!.moveCamera(CameraUpdateFactory.newLatLngZoom(StartLatLng, 17F)) // 폴리라인이 1번 설정되었을 경우 그다음부터는 middleLat 과 middleLat2를 설정해야함.
             googleMap!!.addPolyline(walk_line_option) // 현재 위치로 계속 업데이트해줘야함.
 
             poly_lat2 = middleLatLng // 가장 최근 위치의 1번째 전 위치
+
             Log.d("확인 스타트", StartLatLng.toString())
             Log.d("확인 미들", middleLatLng.toString())
         }
 
         else{
-            if(poly_lat1 != poly_lat2 && middleLatLng != null) {
-                val walk_line_option2 = PolylineOptions().add(poly_lat2).add(poly_lat1).width(8F).color(BLUE).geodesic(true)
-                googleMap!!.moveCamera(CameraUpdateFactory.newLatLngZoom(poly_lat1, 17F)) //
-                googleMap!!.addPolyline(walk_line_option2) //
+            val walk_line_option2 = PolylineOptions().add(poly_lat2).add(poly_lat1).width(8F).color(BLUE).geodesic(true)
+            googleMap!!.moveCamera(CameraUpdateFactory.newLatLngZoom(poly_lat1, 17F)) //
+            googleMap!!.addPolyline(walk_line_option2) //
 
-                poly_lat2 = middleLatLng //가장 최근 위치의 1번째 전 위치
+            Log.d("확인1313", poly_lat1.toString())
+            Log.d("확인1414", poly_lat2.toString())
 
-                Log.d("확인1313", poly_lat1.toString())
-                Log.d("확인1414", poly_lat2.toString())
-            }
+            poly_lat2 = poly_lat1 //가장 최근 위치의 1번째 전 위치
+            Log.d("확인용", "확인쓰")
         }
     }
-
-
-}
