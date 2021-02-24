@@ -5,9 +5,7 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
+import android.location.*
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -39,10 +37,14 @@ import kotlin.properties.Delegates
 
 // 출시하기 전 날씨 APi 이용 저작권 어떻게 하는지 확인하기 (표시해야하는지 등)
 
+// 받아온 날씨 api에 따라 사진 넣어주고 디자인 정리하기.
+
+
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     val data_type = "JSON"
     var num_Of_rows = 0
     var page_No = 0
+    lateinit var binding: ActivityMainBinding
 /*
 var base_time = 2300
 var base_date = 20210130
@@ -56,6 +58,13 @@ var ny = "127"*/
     val fcstValue = -1.0 // 임의 지정
     var fcstDate by Delegates.notNull<String>()
     var fcstTime by Delegates.notNull<String>()
+    var positi = 0
+
+    var TO_GRID = 0
+    var TO_GPS = 1
+
+    var loca_keung = 0.0
+    var loca_we = 0.0
 
     val firebaseAuth = FirebaseAuth.getInstance()
 
@@ -65,6 +74,16 @@ var ny = "127"*/
             val longitude: Double = location.longitude // 경도
             val latitude: Double = location.latitude // 위도
             val altitude: Double = location.altitude // 고도
+
+            location?.let{
+                if (loca_we == 0.0 && loca_keung == 0.0) {
+                    loca_we = it.latitude
+                    loca_keung = it.longitude
+
+                    positi = 1
+                    Log.d("확인1", "gpsLocationListener")
+                }
+            }
         }
 
         override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
@@ -77,18 +96,12 @@ var ny = "127"*/
         }
     }
 
-    var TO_GRID = 0
-    var TO_GPS = 1
-
-    var loca_keung by Delegates.notNull<Double>()
-    var loca_we by Delegates.notNull<Double>()
-
     // 23시 기준, 153개 조회
 
         override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val binding = ActivityMainBinding.inflate(layoutInflater)
+        binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
                 /*val lm2 = getSystemService(Context.LOCATION_SERVICE) as LocationManager
@@ -137,48 +150,83 @@ var ny = "127"*/
             Log.d("현재 시간은", "$fcstTime")
             Log.d("현재 날짜", "$fcstDate")
 
-            binding.btn.setOnClickListener {
+            binding.naviSetting.setOnClickListener {
+                binding.drawerlay.openDrawer(GravityCompat.START)  // 왼쪽에서 화면 나옴
+            }
 
+            binding.naviView.setNavigationItemSelectedListener(this) //네비게이션 아이템 클릭 속성 부여.
 
-                // 위치 (위도, 경도 구하기 시작.)
+            binding.bottomNavi.setOnNavigationItemSelectedListener { //바텀 네비게이션 아이템 클릭 속성 부여
+                when (it.itemId) {
+                    R.id.navi1 -> {
+                        set_frag(0)
+                        return@setOnNavigationItemSelectedListener true
+                    }
+                    R.id.navi2 -> {
+                        set_frag(1)
+                        return@setOnNavigationItemSelectedListener true
+                    }
+                    R.id.navi3 -> {
+                        set_frag(2)
+                        return@setOnNavigationItemSelectedListener true
+                    }
+                    R.id.navi4 -> {
+                        set_frag(3)
+                        return@setOnNavigationItemSelectedListener true
+                    }
+                    R.id.navi5 -> {
+                        set_frag(4)
+                        return@setOnNavigationItemSelectedListener true
+                    }
+                    else -> return@setOnNavigationItemSelectedListener false
+                }
+            }
+
+        } //Oncreate 끝
+
+    override fun onResume() {
+
+        Log.d("확인1", "onresume")
+
+        var geocoder = Geocoder(this) // 위도와 경도를 받아 주소를 나타내주는 함수
+
+        binding.btn.setOnClickListener {
+            if (Build.VERSION.SDK_INT >= 26 && //빌드 SDK 버전이 26 이상이고, 퍼미션 체크를 했을때 퍼미션을 허가받았는지 확인. GRANTED (허가받은)
+                    ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 0) //허용하지 않았다면 request 코드 0을 부여.
+            } else {
                 val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-
+                // 위치 (위도, 경도 구하기 시작.)
                 val isGPSEnabled: Boolean = lm.isProviderEnabled(LocationManager.GPS_PROVIDER) // gps 권한 여부 Boolean 표현
                 val isNetworkEnabled: Boolean = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER) // 네트워크 권한 여부 Boolean 표현
 
-                if (!lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) { // 위치 서비스가 켜져 있지 않은 경우
-                    Toast.makeText(this, "확인용", Toast.LENGTH_SHORT).show()
-                }
-
-                if (Build.VERSION.SDK_INT >= 26 && //빌드 SDK 버전이 26 이상이고, 퍼미션 체크를 했을때 퍼미션을 허가받았는지 확인. GRANTED (허가받은)
-                        ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 0) //허용하지 않았다면 request 코드 0을 부여.
-                } else  {
-                    when { // 프로바이더 제공자 활성화 여부 체크
-                        isNetworkEnabled -> {
-                            val location = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER) // 인터넷 기반으로 위치를 찾는다
-                            //getLastKnownLocation(매개변수) -> 매개변수에 담긴 문자열이 위치 정보 제공자. 위치값 얻지 못하면 null 반환, 값 가져오면 관련된 정보를 location 객체에 담아 전달.
+                when { // 프로바이더 제공자 활성화 여부 체크
+                    isNetworkEnabled -> {
+                        val location = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER) // 인터넷 기반으로 위치를 찾는다
+                        //getLastKnownLocation(매개변수) -> 매개변수에 담긴 문자열이 위치 정보 제공자. 위치값 얻지 못하면 null 반환, 값 가져오면 관련된 정보를 location 객체에 담아 전달.
+                        if (location != null) {
                             val getLongitude = location?.longitude!! //경도
                             val getLatitude = location.latitude // 위도
-
-                            binding.text.text = getLongitude.toString()
-                            binding.text2.text = getLatitude.toString()
 
                             loca_keung = getLongitude //진짜 경도, 격자아님
                             loca_we = getLatitude // 진짜 위도, 격자아님
 
+
                             Toast.makeText(this, "현재위치 불러옴", Toast.LENGTH_SHORT).show()
+
+                            positi = 1
+                            Log.d("확인1", "isNetworkEnabled")
                         }
+                    }
 
-                        isGPSEnabled -> {
-                            val location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER) // GPS 기반으로 위치를 찾는다
-                            //getLastKnownLocation(매개변수) -> 매개변수에 담긴 문자열이 위치 정보 제공자. 위치값 얻지 못하면 null 반환, 값 가져오면 관련된 정보를 location 객체에 담아 전달.
+                    isGPSEnabled -> {
+                        val location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER) // GPS 기반으로 위치를 찾는다
+                        //getLastKnownLocation(매개변수) -> 매개변수에 담긴 문자열이 위치 정보 제공자. 위치값 얻지 못하면 null 반환, 값 가져오면 관련된 정보를 location 객체에 담아 전달.
 
+                        if (location != null) {
                             val getLongitude = location?.longitude!! //경도
                             val getLatitude = location.latitude // 위도
 
-                            binding.text.text = getLongitude.toString()
-                            binding.text2.text = getLatitude.toString()
 
                             loca_keung = getLongitude
                             loca_we = getLatitude
@@ -187,34 +235,75 @@ var ny = "127"*/
                             Log.d("위치", getLatitude.toString())
 
                             Toast.makeText(this, "현재위치 불러옴", Toast.LENGTH_SHORT).show()
+
+                            positi = 1
+                            Log.d("확인1", "isGPSEnabled")
                         }
 
-                        else -> {
-
-                        }
-
-                        //몇초 간격과 몇미터를 이동했을 시에 호출되는 부분 - 주기적으로 위치 업데이트 시 사용
-                        // *** 주기적 업데이트 사용하다가 사용안할시 반드시 해제 필요 ***
-                        /* lm.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-         1000, //몇초
-         1F, // 몇미터
-         gpsLocationListener)
-         lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
-         1000, //몇초
-         1F, // 몇미터
-         gpsLocationListener)
-
-         lm.removeUpdates(gpsLocationListener) // 해제 부분
-
-         */
                     }
+
+                    else -> {
+                        var alter = AlertDialog.Builder(this)
+                        alter.setTitle("권한 허용").setMessage("위치 서비스가 켜져있지 않습니다. 기능을 켜주시기 바랍니다.")
+                        alter.setPositiveButton("켜기") { DialogInterface, i ->
+                            var intent = Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                            startActivity(intent)
+                        }
+                        Log.d("확인1", "else")
+                        alter.show()
+
+                        positi = 0
+                    }
+                }
+                lm.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                        1000, //몇초
+                        0F, // 몇미터
+                        gpsLocationListener)
+
+                lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+                        1000, //몇초
+                        0F, // 몇미터
+                        gpsLocationListener)
+
+                if (loca_we != 0.0 && loca_keung != 0.0) {
                     lm.removeUpdates(gpsLocationListener)
+                    Log.d("확인1", "removeUpdates")
+                }
+            }
+
+
+            //위도, 경도 구하기 끝
+
+
+            /*변환 확인*/
+            if (positi == 1) {
+
+                binding.btn2.setOnClickListener {
+                    var address: List<Address>?
+                    address = geocoder.getFromLocation(loca_we, loca_keung, 1)
+                    Log.d("찾은 주소", address.get(0).toString())
+
+                    var subject_area: String
+
+                    if (address.get(0).subAdminArea != null) {
+
+                        var admin = address.get(0).adminArea.toString()
+                        var subadmin = address.get(0).subAdminArea.toString()
+                        var locality = address.get(0).locality.toString()
+                        var thorough = address.get(0).thoroughfare.toString()
+                        subject_area = admin + subadmin + locality + thorough
+                    } else {
+                        var admin = address.get(0).adminArea.toString()
+                        var locality = address.get(0).locality.toString()
+                        var thorough = address.get(0).thoroughfare.toString()
+                        subject_area = "$admin " + "$locality " + "$thorough"
+                    }
+
+                    Log.d("찾은 주소 지번 빼고", subject_area)
+                    binding.text2.text = subject_area
                 }
 
 
-                //위도, 경도 구하기 끝
-
-                /*변환 확인*/
                 val tmp = convertGRID_GPS(TO_GRID, loca_we, loca_keung)
                 val tmp2 = convertGRID_GPS(TO_GRID, 37.01130555555556, 127.259875)
                 val tmp3 = convertGRID_GPS(TO_GRID, 33.500946412305076, 126.54663058817043)
@@ -280,9 +369,9 @@ var ny = "127"*/
 
                                 // 배열 [2]가 널일때 까지만 넣기.
 
-                                Log.d("api 작동 1 :", response.body().toString())
+                                //Log.d("api 작동 1 :", response.body().toString())
                                 //Log.d("api 작동 2 : ", response.body()!!.response.body.items.item.toString())
-                                Log.d("api 작동 3 : ", response.body()!!.response.body.items.item[0].category)
+                                //Log.d("api 작동 3 : ", response.body()!!.response.body.items.item[0].category)
 
                                 // POP = 강수확률 , PTY = 강수형태, R06 = 6시간 강수량, REH = 습도, SKY = 하늘상태, T3H 3시간 기온,
 
@@ -326,9 +415,9 @@ var ny = "127"*/
                                                 }
                                             }
                                         }
-                                        if (i == 9 && e == total)
-                                            Log.d("결과는 이렇습니다. : ", "현재 시간 ${response.body()!!.response.body.items.item[0].fcstTime} 의 하늘 상태는 ${sky_weather[0]} 이며 강수 형태는 ${rain_form[0]} 입니다. " +
-                                                    "기온은 ${Temperature[0]} 입니다. 습도는 ${humidity[0]} 입니다.")
+                                        if (i == 9 && e == total && j == 2)
+                                            binding.text.text = "결과는 이렇습니다. : 현재 시간 ${response.body()!!.response.body.items.item[0].fcstTime} 의 하늘 상태는 ${sky_weather[0]} 이며 강수 형태는 ${rain_form[0]} 입니다. " +
+                                                    "기온은 ${Temperature[0]} 입니다. 습도는 ${humidity[0]} 입니다."
 
                                     }
 
@@ -353,45 +442,10 @@ var ny = "127"*/
                 Log.d("현재 경도", "$ny")
 
             }
+        }
 
-
-            binding.btn2.setOnClickListener {
-                Toast.makeText(this, "현재 격자 x는 $nx, 격자 y는 $ny 입니다.", Toast.LENGTH_LONG).show()
-            }
-
-            binding.naviSetting.setOnClickListener {
-                binding.drawerlay.openDrawer(GravityCompat.START)  // 왼쪽에서 화면 나옴
-            }
-
-            binding.naviView.setNavigationItemSelectedListener(this) //네비게이션 아이템 클릭 속성 부여.
-
-            binding.bottomNavi.setOnNavigationItemSelectedListener { //바텀 네비게이션 아이템 클릭 속성 부여
-                when (it.itemId) {
-                    R.id.navi1 -> {
-                        set_frag(0)
-                        return@setOnNavigationItemSelectedListener true
-                    }
-                    R.id.navi2 -> {
-                        set_frag(1)
-                        return@setOnNavigationItemSelectedListener true
-                    }
-                    R.id.navi3 -> {
-                        set_frag(2)
-                        return@setOnNavigationItemSelectedListener true
-                    }
-                    R.id.navi4 -> {
-                        set_frag(3)
-                        return@setOnNavigationItemSelectedListener true
-                    }
-                    R.id.navi5 -> {
-                        set_frag(4)
-                        return@setOnNavigationItemSelectedListener true
-                    }
-                    else -> return@setOnNavigationItemSelectedListener false
-                }
-            }
-
-        } //Oncreate 끝
+        super.onResume()
+    }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean { //네비게이션 아이템 선택 시
         val drawer = findViewById<DrawerLayout>(R.id.drawerlay)
