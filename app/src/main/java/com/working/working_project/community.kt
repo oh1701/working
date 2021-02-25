@@ -2,11 +2,17 @@ package com.working.working_project
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.ListView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.ktx.Firebase
 import com.working.working_project.databinding.ActivityCommunityBinding
@@ -15,24 +21,57 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
 
     // 로그인 -> 메인화면 -> 1. 글작성 2. 최신글 3. 나의 글 4. 나의 댓글 만들기 or  << 위험하니 글 말고 다이어트 순위를 가까운 지역 내 순위를 정한 후 기록 설정.
     lateinit var binding:ActivityCommunityBinding
-    val firebaseDatabase = FirebaseDatabase.getInstance().getReference() // 파이어베이스 실시간 db 관리 객체 얻어오기(Root 가져옴.) ()는 최상위 값.
+    lateinit var firebaseDatabase:DatabaseReference// 파이어베이스 실시간 db 관리 객체 얻어오기(Root 가져옴.) ()는 최상위 값.
+    var user: FirebaseUser? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = ActivityCommunityBinding.inflate(layoutInflater, container, false)
+        firebaseDatabase = FirebaseDatabase.getInstance().getReference()
+        user = FirebaseAuth.getInstance().currentUser
 
-        binding.btn1.setOnClickListener {
-            val getedt = binding.edt.text.toString()
-
-            firebaseDatabase.child("user2").setValue(getedt) // 최상위의 하위 객체 생성 후 입력한 텍스트값 값으로 넣어줌. 
-                    .addOnSuccessListener { //성공
-                        Toast.makeText(activity, "저장 완료", Toast.LENGTH_SHORT).show()
-                    }
-                    .addOnFailureListener { //실패
-                        Toast.makeText(activity, "저장 실패, 이유 ${it}", Toast.LENGTH_SHORT).show()
-                    }
-        }
 
         return binding.root
+    }
+
+    override fun onResume() {
+        Log.d("리즘", "onresume")
+        binding.commuConst.visibility = View.VISIBLE
+
+        binding.btn1.setOnClickListener {
+            if(user == null)
+            {
+                Toast.makeText(activity!!, "로그인 되어있지 않음", Toast.LENGTH_SHORT).show()
+            }
+            else {
+
+                binding.commuConst.visibility = View.GONE
+
+                var ft = childFragmentManager.beginTransaction()
+                    .replace(R.id.community_frag, community_board()).commit()
+                ft
+                Log.d("실행", "실행중")
+            }
+        }
+
+        binding.btn2.setOnClickListener {
+            if(user == null)
+            {
+                Toast.makeText(activity!!, "로그인 되어있지 않음", Toast.LENGTH_SHORT).show()
+            }
+
+            else {
+
+                binding.commuConst.visibility = View.GONE
+
+                var ft = childFragmentManager.beginTransaction()
+                    .replace(R.id.community_frag, community_board()).commit()
+                ft
+                Log.d("실행", "실행중")
+            }
+
+        }
+
+        super.onResume()
     }
 
     fun run_rank(){ // my_location 클래스에서 종료 시, 합산되는 데이터들은 정보로 이동함. 이곳에서는 정보의 데이터들을 가져와 다른 사람들과 비교하여 순위를 매김.

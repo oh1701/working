@@ -59,6 +59,7 @@ var ny = "127"*/
     var fcstDate by Delegates.notNull<String>()
     var fcstTime by Delegates.notNull<String>()
     var positi = 0
+    var check_loca = 0
 
     var TO_GRID = 0
     var TO_GPS = 1
@@ -82,6 +83,9 @@ var ny = "127"*/
 
                     positi = 1
                     Log.d("확인1", "gpsLocationListener")
+                    Log.d("loca_we", loca_we.toString())
+                    Log.d("loca_keung", loca_keung.toString())
+                    check_loca = 1
                 }
             }
         }
@@ -190,119 +194,77 @@ var ny = "127"*/
 
         var geocoder = Geocoder(this) // 위도와 경도를 받아 주소를 나타내주는 함수
 
-        binding.btn.setOnClickListener {
-            if (Build.VERSION.SDK_INT >= 26 && //빌드 SDK 버전이 26 이상이고, 퍼미션 체크를 했을때 퍼미션을 허가받았는지 확인. GRANTED (허가받은)
-                    ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 0) //허용하지 않았다면 request 코드 0을 부여.
-            } else {
-                val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-                // 위치 (위도, 경도 구하기 시작.)
-                val isGPSEnabled: Boolean = lm.isProviderEnabled(LocationManager.GPS_PROVIDER) // gps 권한 여부 Boolean 표현
-                val isNetworkEnabled: Boolean = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER) // 네트워크 권한 여부 Boolean 표현
+        if (Build.VERSION.SDK_INT >= 26 && //빌드 SDK 버전이 26 이상이고, 퍼미션 체크를 했을때 퍼미션을 허가받았는지 확인. GRANTED (허가받은)
+            ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 0) //허용하지 않았다면 request 코드 0을 부여.
+        }
+        else {
+            val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+            // 위치 (위도, 경도 구하기 시작.)
+            val isGPSEnabled: Boolean =
+                lm.isProviderEnabled(LocationManager.GPS_PROVIDER) // gps 권한 여부 Boolean 표현
+            val isNetworkEnabled: Boolean =
+                lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER) // 네트워크 권한 여부 Boolean 표현
 
-                when { // 프로바이더 제공자 활성화 여부 체크
-                    isNetworkEnabled -> {
-                        val location = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER) // 인터넷 기반으로 위치를 찾는다
-                        //getLastKnownLocation(매개변수) -> 매개변수에 담긴 문자열이 위치 정보 제공자. 위치값 얻지 못하면 null 반환, 값 가져오면 관련된 정보를 location 객체에 담아 전달.
-                        if (location != null) {
-                            val getLongitude = location?.longitude!! //경도
-                            val getLatitude = location.latitude // 위도
+            when { // 프로바이더 제공자 활성화 여부 체크
+                isGPSEnabled -> {
+                    Toast.makeText(this, "현재위치 불러옴", Toast.LENGTH_SHORT).show()
 
-                            loca_keung = getLongitude //진짜 경도, 격자아님
-                            loca_we = getLatitude // 진짜 위도, 격자아님
+                    positi = 1
+                    Log.d("확인1", "isGPSEnabled")
 
-
-                            Toast.makeText(this, "현재위치 불러옴", Toast.LENGTH_SHORT).show()
-
-                            positi = 1
-                            Log.d("확인1", "isNetworkEnabled")
-                        }
-                    }
-
-                    isGPSEnabled -> {
-                        val location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER) // GPS 기반으로 위치를 찾는다
-                        //getLastKnownLocation(매개변수) -> 매개변수에 담긴 문자열이 위치 정보 제공자. 위치값 얻지 못하면 null 반환, 값 가져오면 관련된 정보를 location 객체에 담아 전달.
-
-                        if (location != null) {
-                            val getLongitude = location?.longitude!! //경도
-                            val getLatitude = location.latitude // 위도
-
-
-                            loca_keung = getLongitude
-                            loca_we = getLatitude
-
-                            Log.d("위치", getLongitude.toString())
-                            Log.d("위치", getLatitude.toString())
-
-                            Toast.makeText(this, "현재위치 불러옴", Toast.LENGTH_SHORT).show()
-
-                            positi = 1
-                            Log.d("확인1", "isGPSEnabled")
-                        }
-
-                    }
-
-                    else -> {
-                        var alter = AlertDialog.Builder(this)
-                        alter.setTitle("권한 허용").setMessage("위치 서비스가 켜져있지 않습니다. 기능을 켜주시기 바랍니다.")
-                        alter.setPositiveButton("켜기") { DialogInterface, i ->
-                            var intent = Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                            startActivity(intent)
-                        }
-                        Log.d("확인1", "else")
-                        alter.show()
-
-                        positi = 0
-                    }
                 }
-                lm.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                        1000, //몇초
-                        0F, // 몇미터
-                        gpsLocationListener)
 
-                lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
-                        1000, //몇초
-                        0F, // 몇미터
-                        gpsLocationListener)
+                isNetworkEnabled -> {
+
+                    positi = 1
+                    Log.d("확인1", "isNetworkEnabled")
+                }
+
+                else -> {
+                    var alter = AlertDialog.Builder(this)
+                    alter.setTitle("권한 허용").setMessage("위치 서비스가 켜져있지 않습니다. 기능을 켜주시기 바랍니다.")
+                    alter.setPositiveButton("켜기") { DialogInterface, i ->
+                        var intent =
+                            Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                        startActivity(intent)
+                    }
+                    Log.d("확인1", "else")
+                    alter.show()
+
+                    positi = 0
+                }
+            }
+
+            if (positi == 1) {
+                lm.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER,
+                    1000, //몇초
+                    0F, // 몇미터
+                    gpsLocationListener
+                )
+
+                lm.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER,
+                    1000, //몇초
+                    0F, // 몇미터
+                    gpsLocationListener
+                )
 
                 if (loca_we != 0.0 && loca_keung != 0.0) {
                     lm.removeUpdates(gpsLocationListener)
                     Log.d("확인1", "removeUpdates")
                 }
             }
+        }
 
 
-            //위도, 경도 구하기 끝
+        //위도, 경도 구하기 끝
 
 
-            /*변환 확인*/
-            if (positi == 1) {
-
-                binding.btn2.setOnClickListener {
-                    var address: List<Address>?
-                    address = geocoder.getFromLocation(loca_we, loca_keung, 1)
-                    Log.d("찾은 주소", address.get(0).toString())
-
-                    var subject_area: String
-
-                    if (address.get(0).subAdminArea != null) {
-
-                        var admin = address.get(0).adminArea.toString()
-                        var subadmin = address.get(0).subAdminArea.toString()
-                        var locality = address.get(0).locality.toString()
-                        var thorough = address.get(0).thoroughfare.toString()
-                        subject_area = admin + subadmin + locality + thorough
-                    } else {
-                        var admin = address.get(0).adminArea.toString()
-                        var locality = address.get(0).locality.toString()
-                        var thorough = address.get(0).thoroughfare.toString()
-                        subject_area = "$admin " + "$locality " + "$thorough"
-                    }
-
-                    Log.d("찾은 주소 지번 빼고", subject_area)
-                    binding.text2.text = subject_area
-                }
-
+        /*변환 확인*/
+        binding.btn.setOnClickListener {
+            if (positi == 1 && loca_we != 0.0 && loca_keung != 0.0) {
 
                 val tmp = convertGRID_GPS(TO_GRID, loca_we, loca_keung)
                 val tmp2 = convertGRID_GPS(TO_GRID, 37.01130555555556, 127.259875)
@@ -315,6 +277,9 @@ var ny = "127"*/
 
                 val int_tmp_x = tmp.x.toInt()
                 val int_tmp_y = tmp.y.toInt()
+
+                    Log.d("loca_we", loca_we.toString())
+                    Log.d("loca_keung", loca_keung.toString())
 
                 Log.d("위도", int_tmp_x.toString())
                 Log.d("경도", int_tmp_y.toString())
@@ -415,9 +380,14 @@ var ny = "127"*/
                                                 }
                                             }
                                         }
-                                        if (i == 9 && e == total && j == 2)
+                                        Log.d("확인이여", j.toString())
+
+                                        if (i == 9 && e == total && j == 2) {
                                             binding.text.text = "결과는 이렇습니다. : 현재 시간 ${response.body()!!.response.body.items.item[0].fcstTime} 의 하늘 상태는 ${sky_weather[0]} 이며 강수 형태는 ${rain_form[0]} 입니다. " +
-                                                    "기온은 ${Temperature[0]} 입니다. 습도는 ${humidity[0]} 입니다."
+                                                        "기온은 ${Temperature[0]} 입니다. 습도는 ${humidity[0]} 입니다."
+                                            Log.d("확인", "결과는 이렇습니다. : 현재 시간 ${response.body()!!.response.body.items.item[0].fcstTime} 의 하늘 상태는 ${sky_weather[0]} 이며 강수 형태는 ${rain_form[0]} 입니다. " +
+                                                        "기온은 ${Temperature[0]} 입니다. 습도는 ${humidity[0]} 입니다.")
+                                        }
 
                                     }
 
@@ -442,6 +412,31 @@ var ny = "127"*/
                 Log.d("현재 경도", "$ny")
 
             }
+        }
+
+        binding.btn2.setOnClickListener {
+            var address: List<Address>?
+            address = geocoder.getFromLocation(loca_we, loca_keung, 1)
+            Log.d("찾은 주소", address.get(0).toString())
+
+            var subject_area: String
+
+            if (address.get(0).subAdminArea != null) {
+
+                var admin = address.get(0).adminArea.toString()
+                var subadmin = address.get(0).subAdminArea.toString()
+                var locality = address.get(0).locality.toString()
+                var thorough = address.get(0).thoroughfare.toString()
+                subject_area = admin + subadmin + locality + thorough
+            } else {
+                var admin = address.get(0).adminArea.toString()
+                var locality = address.get(0).locality.toString()
+                var thorough = address.get(0).thoroughfare.toString()
+                subject_area = "$admin " + "$locality " + "$thorough"
+            }
+
+            Log.d("찾은 주소 지번 빼고", subject_area)
+            binding.text2.text = subject_area
         }
 
         super.onResume()
