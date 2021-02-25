@@ -1,4 +1,4 @@
-package com.working.working_project
+/*package com.working.working_project
 
 import android.view.LayoutInflater
 import android.view.View
@@ -27,4 +27,4 @@ class recycle_board(val board: ArrayList<board_list>):RecyclerView.Adapter<recyc
 
     class board_list(val title:String){
     }
-}
+}*/
