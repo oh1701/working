@@ -1,16 +1,15 @@
 package com.working.working_project
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.provider.ContactsContract
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import android.widget.ListView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
@@ -26,12 +25,14 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
     lateinit var firebaseDatabase:DatabaseReference// 파이어베이스 실시간 db 관리 객체 얻어오기(Root 가져옴.) ()는 최상위 값.
     var user: FirebaseUser? = null
     lateinit var board_data:DatabaseReference
+    lateinit var all_board:DatabaseReference
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = ActivityCommunityBinding.inflate(layoutInflater, container, false)
         firebaseDatabase = FirebaseDatabase.getInstance().getReference()
         user = FirebaseAuth.getInstance().currentUser
 
+        all_board = FirebaseDatabase.getInstance().getReference("all_board") //all_board 아래 경로의 숫자 확인하기 위해 데이터 불러옴
         board_data = FirebaseDatabase.getInstance().getReference("board")
 
         if(board_data != null) {
@@ -58,6 +59,37 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
     }
 
     override fun onResume() {
+        var re_array:ArrayList<recycle_board.board_list> = arrayListOf()
+
+        binding.getboard.layoutManager = LinearLayoutManager(activity!!, LinearLayoutManager.VERTICAL, false)
+        binding.getboard.setHasFixedSize(true)
+        binding.getboard.adapter = recycle_board(re_array)
+
+        var e = 0
+        //가장 처음에 읽어오기를 시행해야한다.
+            all_board.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    re_array.clear()
+
+                    for (dd in snapshot.children) {
+                        re_array.add(recycle_board.board_list(dd.key.toString()))
+                        Log.d("어레이", re_array[e].title)
+                        Log.d("확인dd", dd.key.toString())
+                        e++
+                    }
+                    (binding.getboard.adapter as recycle_board).notifyDataSetChanged()
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                }
+            })
+        Log.d("확인이댱", e.toString())
+
+        binding.btn3.setOnClickListener {
+
+        }
+
+
         Log.d("리즘", "onresume")
         binding.commuConst.visibility = View.VISIBLE
 

@@ -28,6 +28,8 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.properties.Delegates
 
+// 받아온 날씨 api에 따라 사진 넣어주고 디자인 정리하기.
+
 class weather_frag : Fragment() {
     lateinit var binding:ActivityWeatherFragBinding
 

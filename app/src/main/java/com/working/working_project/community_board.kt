@@ -34,40 +34,37 @@ class community_board : Fragment() {
         firebaseDatabase = FirebaseDatabase.getInstance().getReference()
         user = FirebaseAuth.getInstance().currentUser
         all_board = FirebaseDatabase.getInstance().getReference("all_board") //all_board 아래 경로의 숫자 확인하기 위해 데이터 불러옴
-        var i = 0
 
-        all_board.addValueEventListener(object : ValueEventListener { //all_board 값 가져오기
+        return binding.root
+    }
+
+    override fun onResume() {
+
+        var i = -1
+
+        all_board.addListenerForSingleValueEvent(object : ValueEventListener { //all_board 값 가져오기
             override fun onDataChange(snapshot: DataSnapshot) {
                 for (ds in snapshot.children) {
+                    i++
                     key_list[i] = ds.key
                     value_list[i] = ds.value.toString()
                     Log.d("값은", "$ds") // 어레이리스트에 ds.key와 value 담기.
                     Log.d("key값은", "${key_list[i]}")
                     Log.d("value값은", "${value_list[i]}")
-                    i++
+                    Log.d("i 값은", i.toString())
                 }
+
             }
 
             override fun onCancelled(error: DatabaseError) {
             }
         })
 
-        /*for(i in 0 .. 9999) {
-            if () {
-                firebaseDatabase.child("all_board").child("$i").child("1").setValue("1") // 전체 게시판인 all_board에도 추가.
-                Log.d("확인", "이것의 번째는 $i 입니다.")
-                break
-            }
-        }*/
-        return binding.root
-    }
-
-    override fun onResume() {
         Log.d("리즘", "onresume")
         binding.boardLay.visibility = View.VISIBLE
 
-        binding.register.setOnClickListener {
 
+        binding.register.setOnClickListener {
             commu_title = binding.commuTitle.text.toString()
             commu_indata = binding.commuIndata.text.toString()
 
@@ -80,19 +77,23 @@ class community_board : Fragment() {
                 val username = user!!.email.toString().split("@") // 유저 이메일주소에서 @를 뺀 곳 까지 문자열 자르기. 파이어베이스 데이터베이스 차일드에 특문 기록 안되는듯.
                 Log.d("유저 이름", username[0]) // 0번에 @이전의 문자열이 기록되어있음.
 
-               /* for (i in 0..999) {
+                for (i in 0..9999) {
                     if (key_list[i].toString() != i.toString()) { //현재 가진 데이터의 경로(Key)의 값이 0 ~ 999 중에 없는 것을 찾는다
                         Log.d("없는 것은", "$i 임") // 없는 숫자가 있을 경우 그 값을 출력
-
                         firebaseDatabase.child("all_board").child("$i").child("$commu_title").setValue(commu_indata) // 자기 자신이 쓴 글 확인용인 board에 추가
                         firebaseDatabase.child("my_board").child(username[0]).child("$commu_title").setValue(commu_indata) // 자기 자신이 쓴 글 확인용인 board에 추가
-                                .addOnCompleteListener {
-                                    Toast.makeText(activity!!, "성공", Toast.LENGTH_SHORT).show()
-                                }
+                            .addOnCompleteListener {
+                                Toast.makeText(activity!!, "성공", Toast.LENGTH_SHORT).show()
 
-                        break // 모두 했으면 반복 종료
+                                binding.boardLay.visibility = View.GONE
+                                val ft = childFragmentManager.beginTransaction().replace(R.id.board_frame, community()).commit()
+                                ft
+                            }
+
+                        break // 반복 종료
                     }
-                }*/
+                }
+
                 // 유저 이메일 @이전의 것까지를 아이디로, 그 하위를 제목으로, 그 하위를 내용으로 지정
             }
 
