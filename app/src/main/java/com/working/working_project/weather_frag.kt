@@ -1,55 +1,39 @@
 package com.working.working_project
 
 import android.Manifest
+import android.app.AlertDialog
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.*
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
-import android.view.MenuItem
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.GravityCompat
-import androidx.drawerlayout.widget.DrawerLayout
-import androidx.fragment.app.FragmentManager
-import com.google.android.gms.dynamic.SupportFragmentWrapper
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.material.navigation.NavigationView
+import androidx.core.content.ContextCompat.getSystemService
+import androidx.fragment.app.Fragment
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthSettings
-import com.google.firebase.ktx.Firebase
 import com.working.working_project.databinding.ActivityMainBinding
+import com.working.working_project.databinding.ActivityWeatherFragBinding
 import retrofit2.Call
 import retrofit2.Response
-import retrofit2.http.GET
-import retrofit2.http.Query
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.properties.Delegates
 
-// 출시하기 전 날씨 APi 이용 저작권 어떻게 하는지 확인하기 (표시해야하는지 등)
+class weather_frag : Fragment() {
+    lateinit var binding:ActivityWeatherFragBinding
 
-// 받아온 날씨 api에 따라 사진 넣어주고 디자인 정리하기.
-
-
-class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     val data_type = "JSON"
     var num_Of_rows = 0
     var page_No = 0
-    lateinit var binding: ActivityMainBinding
-/*
-var base_time = 2300
-var base_date = 20210130
-var nx = "60"
-var ny = "127"*/
 
     var base_time by Delegates.notNull<String>() //by Delegates.notNull<Int>()
     var base_date by Delegates.notNull<String>()
@@ -60,17 +44,22 @@ var ny = "127"*/
     var fcstTime by Delegates.notNull<String>()
     var positi = 0
     var check_loca = 0
+    lateinit var address: List<Address>
 
     var TO_GRID = 0
     var TO_GPS = 1
 
     var loca_keung = 0.0
     var loca_we = 0.0
-    lateinit var geocoder:Geocoder
+
     val firebaseAuth = FirebaseAuth.getInstance()
 
     val gpsLocationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
+            val provider: String = location.provider
+            val longitude: Double = location.longitude // 경도
+            val latitude: Double = location.latitude // 위도
+            val altitude: Double = location.altitude // 고도
 
             location?.let{
                 if (loca_we == 0.0 && loca_keung == 0.0) {
@@ -96,115 +85,65 @@ var ny = "127"*/
         }
     }
 
-    // 23시 기준, 153개 조회
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        binding = ActivityWeatherFragBinding.inflate(layoutInflater, container, false)
 
-        override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+        val now = LocalDateTime.now() // 날짜, 시간을 표시하는 코드. now는 현재를 알아냄
 
-        geocoder = Geocoder(this) // 위도와 경도를 받아 주소를 나타내주는 함수
+        val timeformat = DateTimeFormatter.ofPattern("HHmm") // 데이트타임 형식을 패턴식으로 변환, H = 시간을 24시간으로 표현한 것. mm = 분
+        val dateformat = DateTimeFormatter.ofPattern("yyyyMMdd") // 데이트타임 형식을 패턴식으로 변환, yyyy = 년도. MM 월, dd 일.
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        var nowtime = now.format(timeformat) // == 현재 시간
+        val nowdate = now.format(dateformat) // == 현재 날짜\
 
-                /*val lm2 = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        Log.d("바뀌기 전 시간", nowtime)
 
-                if (!lm2.isProviderEnabled(LocationManager.GPS_PROVIDER)) { // 위치 서비스가 켜져 있지 않은 경우
+        base_time = nowtime
+        base_date = nowdate
 
-                    val alter = AlertDialog.Builder(this)
-                    alter.setTitle("권한 허용").setMessage("위치 서비스가 켜져있지 않습니다. 기능을 켜주시기 바랍니다.")
-                    alter.setPositiveButton("켜기") { DialogInterface, i ->
-                        var intent = Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                        startActivity(intent)
-                    }
+        if (base_time.toInt() > now.format(DateTimeFormatter.ofPattern("H45")).toInt())  // 현재 시간이 30분 이후라면
+            base_time = now.format(DateTimeFormatter.ofPattern("H45")) // 발표 시간을 현재 시, 30분으로 맞춤
+        else
+            base_time = (now.format(DateTimeFormatter.ofPattern("H45")).toInt() - 100).toString() // 현재 시간이 45분 이전이라면, 발표 시간을 1시간 전 45분으로 맞춤.
 
-                    alter.show()
-                }*/
+        if (base_time.toInt() < 100) { // 00시 일경우
+            base_time = now.format(DateTimeFormatter.ofPattern("2345")) // 발표시간은 23시 45분 것.
+            base_date = (base_date.toInt() - 1).toString() // 날짜는 이전 날을 사용
+        }
 
-            val now = LocalDateTime.now() // 날짜, 시간을 표시하는 코드. now는 현재를 알아냄
+        Log.d("발표 시간", "$base_time")
+        Log.d("발표 날짜", "$base_date")
 
-            val timeformat = DateTimeFormatter.ofPattern("HHmm") // 데이트타임 형식을 패턴식으로 변환, H = 시간을 24시간으로 표현한 것. mm = 분
-            val dateformat = DateTimeFormatter.ofPattern("yyyyMMdd") // 데이트타임 형식을 패턴식으로 변환, yyyy = 년도. MM 월, dd 일.
+        fcstDate = nowdate
+        fcstTime = nowtime
 
-            var nowtime = now.format(timeformat) // == 현재 시간
-            val nowdate = now.format(dateformat) // == 현재 날짜\
+        Log.d("현재 시간은", "$fcstTime")
+        Log.d("현재 날짜", "$fcstDate")
 
-            Log.d("바뀌기 전 시간", nowtime)
-
-            base_time = nowtime
-            base_date = nowdate
-
-            if (base_time.toInt() > now.format(DateTimeFormatter.ofPattern("H45")).toInt())  // 현재 시간이 30분 이후라면
-                base_time = now.format(DateTimeFormatter.ofPattern("H45")) // 발표 시간을 현재 시, 30분으로 맞춤
-            else
-                base_time = (now.format(DateTimeFormatter.ofPattern("H45")).toInt() - 100).toString() // 현재 시간이 45분 이전이라면, 발표 시간을 1시간 전 45분으로 맞춤.
-
-            if (base_time.toInt() < 100) { // 00시 일경우
-                base_time = now.format(DateTimeFormatter.ofPattern("2345")) // 발표시간은 23시 45분 것.
-                base_date = (base_date.toInt() - 1).toString() // 날짜는 이전 날을 사용
-            }
-
-            Log.d("발표 시간", "$base_time")
-            Log.d("발표 날짜", "$base_date")
-
-            fcstDate = nowdate
-            fcstTime = nowtime
-
-            Log.d("현재 시간은", "$fcstTime")
-            Log.d("현재 날짜", "$fcstDate")
-
-            binding.naviSetting.setOnClickListener {
-                binding.drawerlay.openDrawer(GravityCompat.START)  // 왼쪽에서 화면 나옴
-            }
-
-            binding.naviView.setNavigationItemSelectedListener(this) //네비게이션 아이템 클릭 속성 부여.
-
-            binding.bottomNavi.setOnNavigationItemSelectedListener { //바텀 네비게이션 아이템 클릭 속성 부여
-                when (it.itemId) {
-                    R.id.navi1 -> {
-                        set_frag(0)
-                        return@setOnNavigationItemSelectedListener true
-                    }
-                    R.id.navi2 -> {
-                        set_frag(1)
-                        return@setOnNavigationItemSelectedListener true
-                    }
-                    R.id.navi3 -> {
-                        set_frag(2)
-                        return@setOnNavigationItemSelectedListener true
-                    }
-                    R.id.navi4 -> {
-                        set_frag(3)
-                        return@setOnNavigationItemSelectedListener true
-                    }
-                    R.id.navi5 -> {
-                        set_frag(4)
-                        return@setOnNavigationItemSelectedListener true
-                    }
-                    else -> return@setOnNavigationItemSelectedListener false
-                }
-            }
-
-        } //Oncreate 끝
+        return binding.root
+    }
 
     override fun onResume() {
 
         Log.d("확인1", "onresume")
 
+        var geocoder = Geocoder(activity!!) // 위도와 경도를 받아 주소를 나타내주는 함수
+
         if (Build.VERSION.SDK_INT >= 26 && //빌드 SDK 버전이 26 이상이고, 퍼미션 체크를 했을때 퍼미션을 허가받았는지 확인. GRANTED (허가받은)
-            ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 0) //허용하지 않았다면 request 코드 0을 부여.
+                ContextCompat.checkSelfPermission(activity!!.applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(activity!!, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 0) //허용하지 않았다면 request 코드 0을 부여.
         }
         else {
-            val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+            val lm = activity!!.getSystemService(Context.LOCATION_SERVICE) as LocationManager
             // 위치 (위도, 경도 구하기 시작.)
             val isGPSEnabled: Boolean =
-                lm.isProviderEnabled(LocationManager.GPS_PROVIDER) // gps 권한 여부 Boolean 표현
+                    lm.isProviderEnabled(LocationManager.GPS_PROVIDER) // gps 권한 여부 Boolean 표현
             val isNetworkEnabled: Boolean =
-                lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER) // 네트워크 권한 여부 Boolean 표현
+                    lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER) // 네트워크 권한 여부 Boolean 표현
 
             when { // 프로바이더 제공자 활성화 여부 체크
                 isGPSEnabled -> {
-                    Toast.makeText(this, "현재위치 불러옴", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(activity!!, "현재위치 불러옴", Toast.LENGTH_SHORT).show()
 
                     positi = 1
                     Log.d("확인1", "isGPSEnabled")
@@ -218,11 +157,11 @@ var ny = "127"*/
                 }
 
                 else -> {
-                    var alter = AlertDialog.Builder(this)
+                    var alter = AlertDialog.Builder(activity!!)
                     alter.setTitle("권한 허용").setMessage("위치 서비스가 켜져있지 않습니다. 기능을 켜주시기 바랍니다.")
                     alter.setPositiveButton("켜기") { DialogInterface, i ->
                         var intent =
-                            Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                                Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                         startActivity(intent)
                     }
                     Log.d("확인1", "else")
@@ -234,19 +173,23 @@ var ny = "127"*/
 
             if (positi == 1) {
                 lm.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER,
-                    1000, //몇초
-                    0F, // 몇미터
-                    gpsLocationListener
+                        LocationManager.GPS_PROVIDER,
+                        1000, //몇초
+                        0F, // 몇미터
+                        gpsLocationListener
                 )
 
                 lm.requestLocationUpdates(
-                    LocationManager.NETWORK_PROVIDER,
-                    1000, //몇초
-                    0F, // 몇미터
-                    gpsLocationListener
+                        LocationManager.NETWORK_PROVIDER,
+                        1000, //몇초
+                        0F, // 몇미터
+                        gpsLocationListener
                 )
 
+                if (loca_we != 0.0 && loca_keung != 0.0) {
+                    lm.removeUpdates(gpsLocationListener)
+                    Log.d("확인1", "removeUpdates")
+                }
             }
         }
 
@@ -270,8 +213,8 @@ var ny = "127"*/
                 val int_tmp_x = tmp.x.toInt()
                 val int_tmp_y = tmp.y.toInt()
 
-                    Log.d("loca_we", loca_we.toString())
-                    Log.d("loca_keung", loca_keung.toString())
+                Log.d("loca_we", loca_we.toString())
+                Log.d("loca_keung", loca_keung.toString())
 
                 Log.d("위도", int_tmp_x.toString())
                 Log.d("경도", int_tmp_y.toString())
@@ -280,12 +223,6 @@ var ny = "127"*/
                 ny = int_tmp_y.toString() // ny에 경도를 격자로 변환한 값 넣어주기
 
                 Log.d("nx", nx)
-
-
-                var rain_form = arrayOfNulls<String>(3) //"강수 형태"
-                var humidity = arrayOfNulls<String>(3) //"습도"
-                var sky_weather = arrayOfNulls<String>(3) //"하늘 상태"
-                var Temperature = arrayOfNulls<String>(3) //"기온"
 
                 when (base_time) {
                     "0045" -> num_Of_rows = 6
@@ -317,6 +254,11 @@ var ny = "127"*/
 
                 page_No = 0
 
+                var rain_form = arrayOfNulls<String>(3) //"강수 형태"
+                var humidity = arrayOfNulls<String>(3) //"습도"
+                var sky_weather = arrayOfNulls<String>(3) //"하늘 상태"
+                var Temperature = arrayOfNulls<String>(3) //"기온"
+
                 for (i in 0..9) {
                     page_No++
                     val call = ApiObject.retrofitService.GetWeather(data_type, num_Of_rows, page_No, base_date, base_time, nx, ny, fcstValue, fcstDate, fcstTime) // 날씨 api 불러오기
@@ -325,6 +267,14 @@ var ny = "127"*/
                         override fun onResponse(call: Call<WEATHER>, response: Response<WEATHER>) { //연결 성공 시
 
                             if (response.isSuccessful) {
+
+                                // 배열 [2]가 널일때 까지만 넣기.
+
+                                //Log.d("api 작동 1 :", response.body().toString())
+                                //Log.d("api 작동 2 : ", response.body()!!.response.body.items.item.toString())
+                                //Log.d("api 작동 3 : ", response.body()!!.response.body.items.item[0].category)
+
+                                // POP = 강수확률 , PTY = 강수형태, R06 = 6시간 강수량, REH = 습도, SKY = 하늘상태, T3H 3시간 기온,
 
                                 var total = num_Of_rows - 1
 
@@ -369,9 +319,9 @@ var ny = "127"*/
 
                                         if (i == 9 && e == total && j == 2) {
                                             binding.text.text = "결과는 이렇습니다. : 현재 시간 ${response.body()!!.response.body.items.item[0].fcstTime} 의 하늘 상태는 ${sky_weather[0]} 이며 강수 형태는 ${rain_form[0]} 입니다. " +
-                                                        "기온은 ${Temperature[0]} 입니다. 습도는 ${humidity[0]} 입니다."
+                                                    "기온은 ${Temperature[0]} 입니다. 습도는 ${humidity[0]} 입니다."
                                             Log.d("확인", "결과는 이렇습니다. : 현재 시간 ${response.body()!!.response.body.items.item[0].fcstTime} 의 하늘 상태는 ${sky_weather[0]} 이며 강수 형태는 ${rain_form[0]} 입니다. " +
-                                                        "기온은 ${Temperature[0]} 입니다. 습도는 ${humidity[0]} 입니다.")
+                                                    "기온은 ${Temperature[0]} 입니다. 습도는 ${humidity[0]} 입니다.")
                                         }
 
                                     }
@@ -382,6 +332,7 @@ var ny = "127"*/
 
                         override fun onFailure(call: Call<WEATHER>, t: Throwable) { //연결 실패시 시
                             Log.d("api fail :", t.toString())
+                            Toast.makeText(activity!!, "데이터를 받아올 수 없습니다.", Toast.LENGTH_SHORT).show()
                         }
 
                     })
@@ -400,9 +351,11 @@ var ny = "127"*/
         }
 
         binding.btn2.setOnClickListener {
-            var address: List<Address>?
-            address = geocoder.getFromLocation(loca_we, loca_keung, 1)
-            Log.d("찾은 주소", address.get(0).toString())
+
+            if(loca_we != null && loca_keung != null) {
+                address = geocoder.getFromLocation(loca_we, loca_keung, 1)
+                Log.d("찾은 주소", address.get(0).toString())
+            }
 
             var subject_area: String
 
@@ -425,47 +378,6 @@ var ny = "127"*/
         }
 
         super.onResume()
-    }
-
-    override fun onNavigationItemSelected(item: MenuItem): Boolean { //네비게이션 아이템 선택 시
-        val drawer = findViewById<DrawerLayout>(R.id.drawerlay)
-        var d = 0
-
-        when (item.itemId) {
-            R.id.navi_schedule -> Log.d("확인", "확인")
-            R.id.navi_alarm -> Toast.makeText(applicationContext, "네비", Toast.LENGTH_SHORT).show()
-            R.id.navi_weather -> Toast.makeText(applicationContext, "네비", Toast.LENGTH_SHORT).show()
-            R.id.navi_my -> Toast.makeText(applicationContext, "네비", Toast.LENGTH_SHORT).show()
-            R.id.navi_pet -> Toast.makeText(applicationContext, "네비", Toast.LENGTH_SHORT).show()
-            R.id.navi_with -> Toast.makeText(applicationContext, "네비", Toast.LENGTH_SHORT).show()
-            R.id.navi_my_everyday -> Toast.makeText(applicationContext, "네비", Toast.LENGTH_SHORT).show()
-            R.id.navi_Alim -> Toast.makeText(applicationContext, "네비", Toast.LENGTH_SHORT).show()
-
-            R.id.navi_login_logout -> {
-                if (firebaseAuth.currentUser != null) {
-                    firebaseAuth.signOut()
-                    Toast.makeText(this, "로그아웃", Toast.LENGTH_SHORT).show()
-                }
-                else
-                    Toast.makeText(this, "로그인 상태가 아닙니다.", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        drawer.closeDrawers()
-        return false
-    }
-
-    override fun onBackPressed() { //뒤로가기 선택 시
-        val binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        if (binding.drawerlay.isDrawerOpen(GravityCompat.START)) // drawerlayout이 GravityCompat.START 식으로 열려있는 경우
-        {
-            binding.drawerlay.closeDrawers() // 닫아준다
-        }
-        else {
-            super.onBackPressed()
-        }
     }
 
     private fun convertGRID_GPS(mode: Int, lat_X: Double, lng_Y: Double): LatXLngY { //위, 경도를 격자로 변환
@@ -543,18 +455,4 @@ var ny = "127"*/
         var x = 0.0
         var y = 0.0
     }
-
-    private fun set_frag(fragNum: Int) { // 프래그먼트 지정
-
-        val ft = supportFragmentManager.beginTransaction()
-
-        when(fragNum){
-            1 -> ft.replace(R.id.main_frame, my_location()).commit()
-            2 -> ft.replace(R.id.main_frame, login_main_frag()).commit()
-            3 -> ft.replace(R.id.main_frame, weather_frag()).commit()
-            4 -> ft.replace(R.id.main_frame, community()).commit()
-        }
-    }
-
 }
-

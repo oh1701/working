@@ -14,7 +14,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.NoActionBar"
         android:usesCleartextTraffic="true">
-        <activity android:name=".my_write_board"></activity>
+        <activity android:name=".weather_frag"></activity>
+        <activity android:name=".my_write_board" />
         <activity android:name=".community_board" />
         <activity android:name=".community" />
         <activity android:name=".my_location" />

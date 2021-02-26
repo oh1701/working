@@ -39,7 +39,8 @@ import kotlin.properties.Delegates
 
 // fragment 에서 context 를 사용하려고하면 activity가 아니기 때문에 불가능. 그러므로 getActivity. activity 함수를 사용하여 액티비티를 얻어와야 한다.
 // 거리계산 = start 와 middle 비교 후 count에 저장. 이후 middle1 과 middle 2 비교후 count에 계속 저장하다가 버튼누르면 count 출력.
-// 문제점 // 거리계산이 조금 이상한것같음. gps가 튀기는데 이건 어쩔수가없다.
+// 문제점 // 거리계산이 조금 이상한것같음. gps가 튀기는데 이건 어쩔수가없는듯.
+// and count 계산이 조금 이상하다.
 
 class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
 
@@ -61,9 +62,9 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
 
     var gps = 0
 
-    var lat1 by Delegates.notNull<Double>()
+    var lat1:Double? = null
     var lat2:Double? = null
-    var lng1 by Delegates.notNull<Double>()
+    var lng1:Double? = null
     var lng2:Double? = null
 
     var poly_check = 0
@@ -101,12 +102,6 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
                 lat2 = it.latitude
                 lng2 = it.longitude
 
-                if(lat1 != null && lng2 != null && lat2 != null && lng2 != null){
-                    count += runEnd(lat1, lng1, lat2!!, lng2!!) // lat1과 lat2의 위치 비교 후 카운트에 더하기.
-                    Log.d("카운트는", count.toString())
-                }
-
-
                 middleLatLng = LatLng(it.latitude, it.longitude)
 
                 Log.d("확인미들", middleLatLng.toString())
@@ -118,6 +113,11 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
 
             if (walk_checkd == 1 && positi == 1) {
                 Log.d("확인", "폴리라인 변경에서")
+                if(lat1 != null && lng2 != null && lat2 != null && lng2 != null){
+                    count = count + runEnd(lat1!!, lng1!!, lat2!!, lng2!!) // lat1과 lat2의 위치 비교 후 카운트에 더하기.
+                    Log.d("카운트는", count.toString())
+                }
+
                 polyline()
             }
         }
