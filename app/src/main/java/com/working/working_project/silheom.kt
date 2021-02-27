@@ -12,12 +12,12 @@ class silheom : AppCompatActivity() {
         var binding = ActivitySilheomBinding.inflate(layoutInflater)
         setContentView(R.layout.activity_silheom)
 
-        var re_array = arrayListOf(recycle_board.board_list("aaaaa"), recycle_board.board_list("1234123124"))
+        var board_list = arrayListOf(board_list("aaaaa"), board_list("1234123124"))
 
         var board = findViewById<RecyclerView>(R.id.board)
 
         board.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         board.setHasFixedSize(true)
-        board.adapter = recycle_board(re_array)
+        board.adapter = recycle_board(board_list)
     }
 }

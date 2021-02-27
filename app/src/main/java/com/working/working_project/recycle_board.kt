@@ -9,17 +9,19 @@ import androidx.recyclerview.widget.RecyclerView
 
 class recycle_board(val board: ArrayList<board_list>):RecyclerView.Adapter<recycle_board.ViewHolder>() {
 
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): recycle_board.ViewHolder {
         Log.d("확인", "확인1")
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.activity_silheom, parent, false)
-        return ViewHolder(view)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.get_board_recycler, parent, false)
+        return recycle_board.ViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: recycle_board.ViewHolder, position: Int) {
-        Log.d("board", "${board[0].title}")
-        Log.d("board", "${board[1].title}")
+        Log.d("board", board[0].title)
+        Log.d("board", board[1].title)
 
-        holder.title.text = board[position].title.toString()
+        holder.title.text = board.get(position).title
+        Log.d("holder_board_title", "${holder.title}")
     }
 
     override fun getItemCount(): Int {
@@ -28,9 +30,9 @@ class recycle_board(val board: ArrayList<board_list>):RecyclerView.Adapter<recyc
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
-        var title = itemView.findViewById<TextView>(R.id.recycler_text)
+        var title:TextView = itemView.findViewById(R.id.recycler_text)
     }
 
-    class board_list(val title:String){
-    }
+}
+class board_list(val title:String){
 }

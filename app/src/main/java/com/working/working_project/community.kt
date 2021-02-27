@@ -59,11 +59,7 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
     }
 
     override fun onResume() {
-        var re_array:ArrayList<recycle_board.board_list> = arrayListOf()
-
-        binding.getboard.layoutManager = LinearLayoutManager(activity!!, LinearLayoutManager.VERTICAL, false)
-        binding.getboard.setHasFixedSize(true)
-        binding.getboard.adapter = recycle_board(re_array)
+        var re_array:ArrayList<board_list> = arrayListOf()
 
         var e = 0
         //가장 처음에 읽어오기를 시행해야한다.
@@ -72,7 +68,7 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
                     re_array.clear()
 
                     for (dd in snapshot.children) {
-                        re_array.add(recycle_board.board_list(dd.key.toString()))
+                        re_array.add(board_list(dd.key.toString()))
                         Log.d("어레이", re_array[e].title)
                         Log.d("확인dd", dd.key.toString())
                         e++
@@ -84,6 +80,10 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
                 }
             })
         Log.d("확인이댱", e.toString())
+
+        binding.getboard.layoutManager = LinearLayoutManager(activity!!, LinearLayoutManager.VERTICAL, false)
+        binding.getboard.setHasFixedSize(true)
+        binding.getboard.adapter = recycle_board(re_array)
 
         binding.btn3.setOnClickListener {
 
