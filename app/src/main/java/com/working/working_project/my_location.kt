@@ -31,6 +31,9 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.*
 import com.working.working_project.databinding.ActivityMyLocationBinding
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -48,7 +51,10 @@ import kotlin.properties.Delegates
 
 class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
 
+    var user: FirebaseUser? = null
+    lateinit var firebaseDatabase: DatabaseReference
     var googleMap: GoogleMap? = null
+    lateinit var information:DatabaseReference
 
     lateinit var StartLatLng: LatLng // 버튼 누르면 true, false로 바뀌는것 사용해서 스타트 버튼 위치 지정.
     lateinit var lm: LocationManager
@@ -63,21 +69,31 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
     var positi: Int = 0 // 위치 서비스 켜져있을경우 1 , 아닐경우 0
     var count:Float = 0.0F
 
-    var gps = 0
+    var gps = 0 // 최초 위치 파악용
 
-    var lat1:Double? = null
-    var lat2:Double? = null
-    var lng1:Double? = null
-    var lng2:Double? = null
+    var lat1:Double? = null // 위치 시작
+    var lat2:Double? = null // 위치 시작
+    var lng1:Double? = null // 위치 종료
+    var lng2:Double? = null // 위치 종료
 
     var poly_check = 0
     var add_check = 0
+
     val now = LocalDateTime.now()
+    var move_count_sub:Double? = 0.0
+    val dateformat = DateTimeFormatter.ofPattern("yyyyMMdd")
+
+
+
+    var key_list= arrayOfNulls<String>(99)
+    var value_list= arrayOfNulls<String>(99)
+
 
     //위치 변동 시 처음 위치로 기록하고 그 이후 기록을 처음위치부터 시작하기.
 
     //var walk_checkd:Boolean = false
-    var walk_checkd = 0
+    var walk_checkd = 0 // 달리기 버튼, 종료 버튼 확인용
+    var infor_checkd = 0 // 정보가 비어있는지 없는지 확인용.
 
     val gpsLocationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) { //위치 값이 변경되면 실행되는 함수
@@ -136,6 +152,101 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
         binding = ActivityMyLocationBinding.inflate(layoutInflater, container, false)
+
+        firebaseDatabase = FirebaseDatabase.getInstance().getReference()
+        user = FirebaseAuth.getInstance().currentUser
+        val username = user!!.email.toString().split("@")
+        information = FirebaseDatabase.getInstance().getReference("member").child("${username[0]}")
+
+
+        information.addListenerForSingleValueEvent(object : ValueEventListener { // 값 가져오기
+            var i = -1
+            var infor_count = 0
+
+            override fun onDataChange(snapshot: DataSnapshot) {
+                for (ds in snapshot.children) {
+                    i++
+                    key_list[i] = ds.key
+                    value_list[i] = ds.value.toString()
+                    move_count_sub = value_list[i]?.toDouble()
+                    Log.d("값은", "$ds") // 어레이리스트에 ds.key와 value 담기.
+                    Log.d("값은", "$move_count_sub")
+
+                    when (key_list[i]) { // 반복문은 key값이 있는만큼 반복하므로 안에서 찾으면 된다. 없을시 else 실행.
+                        "이름" -> {
+                            infor_checkd++
+                        }
+                        "성별" -> {
+                            infor_checkd++
+                        }
+                        "나이" -> {
+                            infor_checkd++
+                        }
+                        "목표설정" -> {
+                            infor_checkd++
+                        }
+                        "목표까지" -> {
+                            infor_checkd++
+                        }
+                        "운동거리" -> {
+                            infor_checkd++
+                        }
+                        else -> {
+                        }
+                    }
+                }
+
+                    if(infor_checkd >= 6)
+                    {
+                        for(i in value_list.indices){
+                            if(value_list[i] == "0.0")
+                                infor_count++
+                            if(infor_count >= 3)
+                            {
+                                var a = AlertDialog.Builder(activity!!)
+                                a.setTitle("정보를 입력해주세요.")
+                                a.setMessage("해당 기능을 정상적으로 이용하기 위해서는 정보를 입력해주셔야합니다.")
+                                a.setPositiveButton("이동") { DialogInterface, i ->
+                                    var intent = Intent(activity!!, qpqpslsl::class.java)
+                                    startActivity(intent)
+                                }
+                                a.setNegativeButton("취소"){ dialogInterface: DialogInterface, i: Int ->
+                                    false
+                                }
+
+                                a.show()
+                                break
+                            }
+
+                        }
+                    }
+
+                    if(infor_checkd <= 5) {
+                        information.child("이름").setValue("0.0")
+                        information.child("성별").setValue("0.0")
+                        information.child("나이").setValue("0.0")
+                        information.child("목표설정").setValue("0.0")
+                        information.child("목표까지").setValue("0.0")
+                        information.child("운동거리").setValue("0.0")
+
+                        var a = AlertDialog.Builder(activity!!)
+                        a.setTitle("정보를 입력해주세요.")
+                        a.setMessage("해당 기능을 정상적으로 이용하기 위해서는 정보를 입력해주셔야합니다.")
+                        a.setPositiveButton("이동") { DialogInterface, i ->
+                            var intent = Intent(activity!!, qpqpslsl::class.java)
+                            startActivity(intent)
+                        }
+                        a.setNegativeButton("취소") { dialogInterface: DialogInterface, i: Int ->
+                            false
+                        }
+
+                        a.show()
+                    }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+            }
+        })
 
         return binding.root
     }
@@ -237,11 +348,16 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
         }
 
         binding.runEnd.setOnClickListener {
-            val dateformat = DateTimeFormatter.ofPattern("yyyyMMdd")
 
             if (walk_checkd == 1) {
                 walk_checkd = 2
                 add_check = 2
+
+                fun information() {
+                    move_count_sub = move_count_sub?.plus(String.format("%.2f", count).toDouble())
+                    information.child("운동 거리는").setValue(String.format("%.1f", move_count_sub) + "M")
+                    information.child("운동 날짜는").setValue("${now.format(dateformat)}")
+                }
 
                 addmarker()
                 lm.removeUpdates(gpsLocationListener)
@@ -334,7 +450,6 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
             else if(add_check == 2){
                 marker.title("종료 위치")
                 googleMap!!.addMarker(marker) // 지정해던 설정으로 마커 추가
-
             }
     }
 

@@ -26,8 +26,8 @@ class community_board : Fragment() {
     var count = -1
     lateinit var all_board:DatabaseReference
 
-    var key_list= arrayOfNulls<String>(9999)
-    var value_list= arrayOfNulls<String>(9999)
+    var key_list= arrayOfNulls<String>(99)
+    var value_list= arrayOfNulls<String>(99)
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = ActivityCommunityBoardBinding.inflate(layoutInflater, container, false)
@@ -77,7 +77,7 @@ class community_board : Fragment() {
                 val username = user!!.email.toString().split("@") // 유저 이메일주소에서 @를 뺀 곳 까지 문자열 자르기. 파이어베이스 데이터베이스 차일드에 특문 기록 안되는듯.
                 Log.d("유저 이름", username[0]) // 0번에 @이전의 문자열이 기록되어있음.
 
-                for (i in 0..9999) {
+                for (i in 0..99) {
                     if (key_list[i].toString() != i.toString()) { //현재 가진 데이터의 경로(Key)의 값이 0 ~ 999 중에 없는 것을 찾는다
                         Log.d("없는 것은", "$i 임") // 없는 숫자가 있을 경우 그 값을 출력
                         firebaseDatabase.child("all_board").child("$i").child("$commu_title").setValue(commu_indata) // 자기 자신이 쓴 글 확인용인 board에 추가

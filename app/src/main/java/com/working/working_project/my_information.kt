@@ -32,8 +32,8 @@ class my_information : Fragment(), inter_run_information {
         firebaseDatabase.child("member").child("이름").setValue(binding.memberName.text.toString())
         firebaseDatabase.child("member").child("성별").setValue(binding.memberGender.text.toString())
         firebaseDatabase.child("member").child("나이").setValue(binding.memberAge.text.toString())
-        firebaseDatabase.child("member").child("운동거리").setValue(binding.memberRunningMeter.text.toString())
         firebaseDatabase.child("member").child("목표까지").setValue(binding.memberRunningObject.text.toString())
+        firebaseDatabase.child("member").child("운동거리").setValue(binding.memberRunningMeter.text.toString())
 
         return binding.root
     }
