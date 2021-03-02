@@ -3,8 +3,8 @@
 
     <item
         android:id="@+id/navi1"
-        android:icon="@drawable/ic_human"
-        android:title="내 정보"
+        android:icon="@drawable/ic_cloud"
+        android:title="오늘 날씨"
         />
 
     <item
@@ -15,18 +15,12 @@
 
     <item
         android:id="@+id/navi3"
-        android:icon="@drawable/ic_login"
-        android:title="로그인"
+        android:icon="@drawable/ic_human"
+        android:title="내 정보"
         />
 
     <item
         android:id="@+id/navi4"
-        android:icon="@drawable/ic_cloud"
-        android:title="오늘 날씨"
-        />
-
-    <item
-        android:id="@+id/navi5"
         android:icon="@drawable/ic_comment"
         android:title="커뮤니티"
         />

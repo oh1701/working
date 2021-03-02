@@ -4,4 +4,12 @@
     <string name="naver_client_id">1DzszHpGWDSM3PL9jpEb</string>
     <string name="naver_client_secret">03BmrVGzpb</string>
     <string name="naver_client_name">working_project</string>
+
+    <string-array name="item">
+        <item>"빨강 그라데이션"</item>
+        <item>"파랑 그라데이션"</item>
+        <item>"노랑 그라데이션"</item>
+        <item>"초록 그라데이션"</item>
+        <item>"기본"</item>
+    </string-array>
 </resources>

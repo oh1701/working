@@ -102,10 +102,9 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
 
                 binding.commuConst.visibility = View.GONE
 
-                var ft = childFragmentManager.beginTransaction()
-                    .replace(R.id.community_frag, community_board()).commit()
+                var ft = activity!!.supportFragmentManager.beginTransaction().replace(R.id.community_frag, community_board()).commit()
+
                 ft
-                Log.d("실행", "실행중")
             }
         }
 
@@ -116,13 +115,9 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
             }
 
             else {
+                var ft = activity!!.supportFragmentManager.beginTransaction().replace(R.id.community_frag, community_board()).commit()
 
-                binding.commuConst.visibility = View.GONE
-
-                var ft = childFragmentManager.beginTransaction()
-                    .replace(R.id.community_frag, community_board()).commit()
                 ft
-                Log.d("실행", "실행중")
             }
 
         }

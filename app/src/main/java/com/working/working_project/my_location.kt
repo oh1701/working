@@ -32,21 +32,24 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
 import com.working.working_project.databinding.ActivityMyLocationBinding
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.concurrent.timer
 import kotlin.concurrent.timerTask
 import kotlin.properties.Delegates
 
 // fragment 에서 context 를 사용하려고하면 activity가 아니기 때문에 불가능. 그러므로 getActivity. activity 함수를 사용하여 액티비티를 얻어와야 한다.
-// 거리계산 = start 와 middle 비교 후 count에 저장. 이후 middle1 과 middle 2 비교후 count에 계속 저장하다가 버튼누르면 count 출력.
-// 문제점 // 거리계산이 조금 이상한것같음. gps가 튀기는데 이건 어쩔수가없는듯.
-// and count 계산이 조금 이상하다.
+
+// count 계산이 조금 이상하다.
+// 운동 거리 보내기는 firebase 이용해서 하기.
+// 메인을 로그인화면으로 바꾸고 모든 것을 로그인해야 사용이 가능하게 끔 만들기.
+// 네비게이션에 알람 추가, 옆 네비에서 삭제.
 
 class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
 
     var googleMap: GoogleMap? = null
-    var nx: String = "0"
-    var ny: String = "0"
+
     lateinit var StartLatLng: LatLng // 버튼 누르면 true, false로 바뀌는것 사용해서 스타트 버튼 위치 지정.
     lateinit var lm: LocationManager
 
@@ -69,6 +72,7 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
 
     var poly_check = 0
     var add_check = 0
+    val now = LocalDateTime.now()
 
     //위치 변동 시 처음 위치로 기록하고 그 이후 기록을 처음위치부터 시작하기.
 
@@ -79,15 +83,10 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
         override fun onLocationChanged(location: Location) { //위치 값이 변경되면 실행되는 함수
             location?.let {
                 if (gps == 0) { // lastlocation이 잘 안먹혀서 이거로 설정했음.  gps 변수는 최초 위치 저장용으로 설정해놨음.
-                    Log.d("확인nxny", "$nx, $ny")
-                    nx = it.latitude.toString()
-                    ny = it.longitude.toString()
 
-                    lat1 = nx.toDouble() //라티튜드
-                    lng1 = ny.toDouble()
+                    Log.d("확인 gps", "gps 부분이다.")
 
                     gps = 1
-                    Log.d("확인nxny0임", "$nx, $ny")
 
                     middleLatLng = LatLng(it.latitude, it.longitude)
                     run() //실행 순서가 run(), onmapready, locationchanged 순서라 run을 가장 늦게 주려면 여기에 줘야함.
@@ -238,11 +237,14 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
         }
 
         binding.runEnd.setOnClickListener {
+            val dateformat = DateTimeFormatter.ofPattern("yyyyMMdd")
+
             if (walk_checkd == 1) {
                 walk_checkd = 2
                 add_check = 2
 
                 addmarker()
+                lm.removeUpdates(gpsLocationListener)
                 Toast.makeText(activity, "달리기 종료", Toast.LENGTH_SHORT).show()
 
                 positi = 0 //초기화 작업
@@ -266,12 +268,12 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
                 lat2 = 0.0
                 lng1 = 0.0
                 lng2 = 0.0
-
-                lm.removeUpdates(gpsLocationListener)
             }
             else {
                 Toast.makeText(activity, "시작 버튼을 누르지 않은 상태입니다.", Toast.LENGTH_SHORT).show()
             }
+
+           // member_information(String.format("%.2f", count), now.format(dateformat))  이동 거리와 운동한 날짜 기록한다.
         }
     }
 
