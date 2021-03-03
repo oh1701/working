@@ -34,46 +34,53 @@ class login_main_frag : AppCompatActivity() {
         
         setContentView(binding.root)
 
-        binding.joinMemberBtn.setOnClickListener {
-            val intent = Intent(this, join_member_frag::class.java)
-            intent.putExtra("join_member", "join_member")
-            startActivity(intent)
-        }
+        var user = FirebaseAuth.getInstance().currentUser
+        if(user == null) {
 
-        binding.idSrcBtn.setOnClickListener {
-            val intent = Intent(this, join_member_frag::class.java)
-            intent.putExtra("src_pass", "src_pass")
-            startActivity(intent)
-        }
+            binding.joinMemberBtn.setOnClickListener {
+                val intent = Intent(this, join_member_frag::class.java)
+                intent.putExtra("join_member", "join_member")
+                startActivity(intent)
+            }
 
-        binding.join.setOnClickListener {
+            binding.idSrcBtn.setOnClickListener {
+                val intent = Intent(this, join_member_frag::class.java)
+                intent.putExtra("src_pass", "src_pass")
+                startActivity(intent)
+            }
 
-            if (binding.idSel.length() > 0 && binding.passSel.length() > 0) {
-                firebaseAuth.signInWithEmailAndPassword(binding.idSel.text.toString(), binding.passSel.text.toString())
-                        .addOnCompleteListener(this) {
-                            if (it.isSuccessful) { // 성공시
-                                movepage(firebaseAuth.currentUser) //파이어베이스 유저정보 확인
-                            } else {
-                                try {
-                                    throw it.exception!!
-                                } catch (FirebaseAuth_notsrc_member: FirebaseAuthInvalidUserException) { // 회원이 등록되어 있지 않음.
-                                    Toast.makeText(this, "아이디가 올바르지 않습니다.", Toast.LENGTH_SHORT).show()
-                                } catch (FirebaseAuth_notsrc_password: FirebaseAuthInvalidCredentialsException) { // 회원이 등록되어 있지 않음.
-                                    Toast.makeText(this, "패스워드가 올바르지 않습니다.", Toast.LENGTH_SHORT).show()
-                                } catch (firebaseException: FirebaseException) { //네트워크 미연결 시 나타나는 메세지.
-                                    Toast.makeText(this, "네트워크를 확인해주세요.", Toast.LENGTH_SHORT).show()
+            binding.join.setOnClickListener {
+
+                if (binding.idSel.length() > 0 && binding.passSel.length() > 0) {
+                    firebaseAuth.signInWithEmailAndPassword(binding.idSel.text.toString(), binding.passSel.text.toString())
+                            .addOnCompleteListener(this) {
+                                if (it.isSuccessful) { // 성공시
+                                    movepage(firebaseAuth.currentUser) //파이어베이스 유저정보 확인
+                                } else {
+                                    try {
+                                        throw it.exception!!
+                                    } catch (FirebaseAuth_notsrc_member: FirebaseAuthInvalidUserException) { // 회원이 등록되어 있지 않음.
+                                        Toast.makeText(this, "아이디가 올바르지 않습니다.", Toast.LENGTH_SHORT).show()
+                                    } catch (FirebaseAuth_notsrc_password: FirebaseAuthInvalidCredentialsException) { // 회원이 등록되어 있지 않음.
+                                        Toast.makeText(this, "패스워드가 올바르지 않습니다.", Toast.LENGTH_SHORT).show()
+                                    } catch (firebaseException: FirebaseException) { //네트워크 미연결 시 나타나는 메세지.
+                                        Toast.makeText(this, "네트워크를 확인해주세요.", Toast.LENGTH_SHORT).show()
+                                    }
+
+
+                                    Log.d("오류", it.exception.toString())
                                 }
 
-
-                                Log.d("오류", it.exception.toString())
                             }
+                } else {
+                    Toast.makeText(this, "아이디나 패스워드를 입력해주세요.", Toast.LENGTH_SHORT).show()
+                }
 
-                        }
             }
-            else {
-                Toast.makeText(this, "아이디나 패스워드를 입력해주세요.", Toast.LENGTH_SHORT).show()
-            }
-
+        }
+        else {
+            var intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
         }
     }
 

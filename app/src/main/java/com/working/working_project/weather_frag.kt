@@ -105,8 +105,8 @@ class weather_frag : Fragment() {
         base_time = nowtime
         base_date = nowdate
 
-        if (base_time.toInt() > now.format(DateTimeFormatter.ofPattern("H45")).toInt())  // 현재 시간이 30분 이후라면
-            base_time = now.format(DateTimeFormatter.ofPattern("H45")) // 발표 시간을 현재 시, 30분으로 맞춤
+        if (base_time.toInt() > now.format(DateTimeFormatter.ofPattern("H45")).toInt())  // 현재 시간이 45분 이후라면
+            base_time = now.format(DateTimeFormatter.ofPattern("H45")) // 발표 시간을 현재 시, 45분으로 맞춤
         else
             base_time = (now.format(DateTimeFormatter.ofPattern("H45")).toInt() - 100).toString() // 현재 시간이 45분 이전이라면, 발표 시간을 1시간 전 45분으로 맞춤.
 
@@ -114,6 +114,9 @@ class weather_frag : Fragment() {
             base_time = now.format(DateTimeFormatter.ofPattern("2345")) // 발표시간은 23시 45분 것.
             base_date = (base_date.toInt() - 1).toString() // 날짜는 이전 날을 사용
         }
+
+        if(base_time.toInt() < 1000)
+            base_time = "0" + base_time
 
         Log.d("발표 시간", "$base_time")
         Log.d("발표 날짜", "$base_date")
@@ -305,7 +308,7 @@ class weather_frag : Fragment() {
                                 // 배열 [2]가 널일때 까지만 넣기.
 
                                 //Log.d("api 작동 1 :", response.body().toString())
-                                Log.d("api 작동 2 : ", response.body()!!.response.body.items.item.toString())
+                                //Log.d("api 작동 2 : ", response.body()!!.response.body.items.item.toString())
                                 //Log.d("api 작동 3 : ", response.body()!!.response.body.items.item[0].category)
 
                                 // POP = 강수확률 , PTY = 강수형태, T1H = 기온, REH = 습도, SKY = 하늘상태, RN1 = 강수량
@@ -390,7 +393,7 @@ class weather_frag : Fragment() {
                                                         binding.weatherImage.setImageResource(R.drawable.snow)
 
 
-                                                    Log.d("확인", "결과는 이렇습니다. : 현재 시간 ${response.body()!!.response.body.items.item[1].fcstTime} 의 하늘 상태는 ${sky_weather[0]} 이며 강수 형태는 ${rain_form[0]} 입니다. " +
+                                                    Log.d("확인", "결과는 이렇습니다. : 현재 시간 ${response.body()!!.response.body.items.item[0].fcstTime} 의 하늘 상태는 ${sky_weather[0]} 이며 강수 형태는 ${rain_form[0]} 입니다. " +
                                                             "기온은 ${Temperature[0]} 입니다. 습도는 ${humidity[0]} 입니다.")
 
 

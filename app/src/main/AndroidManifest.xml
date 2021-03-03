@@ -22,8 +22,8 @@
             android:value="AIzaSyAsextB4kSkvkx0UmzZ_nc1hcx5wXwACCo" />
 
         <activity android:name=".join_member_frag" />
-        <activity android:name=".login_main_frag" />
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity"/>
+        <activity android:name=".login_main_frag">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

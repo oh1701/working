@@ -150,6 +150,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
             2 -> {
                 ft.replace(R.id.main_frame, my_information()).commit()
+                binding.runningRecommend.text = "나의 정보"
             }
             3 -> {
                 ft.replace(R.id.main_frame, community()).commit()
