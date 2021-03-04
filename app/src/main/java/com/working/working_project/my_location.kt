@@ -44,17 +44,15 @@ import kotlin.properties.Delegates
 
 // fragment 에서 context 를 사용하려고하면 activity가 아니기 때문에 불가능. 그러므로 getActivity. activity 함수를 사용하여 액티비티를 얻어와야 한다.
 
-// count 계산이 조금 이상하다.
-// 운동 거리 보내기는 firebase 이용해서 하기.
-// 메인을 로그인화면으로 바꾸고 모든 것을 로그인해야 사용이 가능하게 끔 만들기.
+// count 계산이 조금 이상하다. // 1초, 1m로 설정하고 카운트가 이전 카운트와 20m이상 차이날시 기록하지 않게하기.
 // 네비게이션에 알람 추가, 옆 네비에서 삭제.
 
 class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
 
-    var user: FirebaseUser? = null
-    lateinit var firebaseDatabase: DatabaseReference
+    private var user: FirebaseUser? = null
+    private lateinit var firebaseDatabase: DatabaseReference
     var googleMap: GoogleMap? = null
-    lateinit var information:DatabaseReference
+    private lateinit var information:DatabaseReference
 
     lateinit var StartLatLng: LatLng // 버튼 누르면 true, false로 바뀌는것 사용해서 스타트 버튼 위치 지정.
     lateinit var lm: LocationManager
@@ -80,20 +78,21 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
     var add_check = 0
 
     val now = LocalDateTime.now()
-    var move_count_sub:Double? = 0.0
+    var move_count_sub:Double? = null
     val dateformat = DateTimeFormatter.ofPattern("yyyyMMdd")
+    var move_object_percent:Double? = null
 
 
 
-    var key_list= arrayOfNulls<String>(99)
-    var value_list= arrayOfNulls<String>(99)
+    private var key_list= arrayOfNulls<String>(99)
+    private var value_list= arrayOfNulls<String>(99)
 
 
     //위치 변동 시 처음 위치로 기록하고 그 이후 기록을 처음위치부터 시작하기.
 
     //var walk_checkd:Boolean = false
     var walk_checkd = 0 // 달리기 버튼, 종료 버튼 확인용
-    var infor_checkd = 0 // 정보가 비어있는지 없는지 확인용.
+    private var infor_checkd = 0 // 정보가 비어있는지 없는지 확인용.
 
     val gpsLocationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) { //위치 값이 변경되면 실행되는 함수
@@ -129,7 +128,7 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
             if (walk_checkd == 1 && positi == 1) {
                 Log.d("확인", "폴리라인 변경에서")
                 if(lat1 != null && lng2 != null && lat2 != null && lng2 != null){
-                    count = count + runEnd(lat1!!, lng1!!, lat2!!, lng2!!) // lat1과 lat2의 위치 비교 후 카운트에 더하기.
+                    count += String.format("%.1f", runEnd(lat1!!, lng1!!, lat2!!, lng2!!)).toFloat() // lat1과 lat2의 위치 비교 후 카운트에 더하기.
                     Log.d("카운트는", count.toString())
                 }
 
@@ -168,9 +167,7 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
                     i++
                     key_list[i] = ds.key
                     value_list[i] = ds.value.toString()
-                    move_count_sub = value_list[i]?.toDouble()
                     Log.d("값은", "$ds") // 어레이리스트에 ds.key와 value 담기.
-                    Log.d("값은", "$move_count_sub")
 
                     when (key_list[i]) { // 반복문은 key값이 있는만큼 반복하므로 안에서 찾으면 된다. 없을시 else 실행.
                         "이름" -> {
@@ -187,9 +184,11 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
                         }
                         "목표까지" -> {
                             infor_checkd++
+                            move_object_percent = value_list[i]?.toDouble() // 목표까지 거리계산한 것 가져오기
                         }
                         "운동거리" -> {
                             infor_checkd++
+                            move_count_sub = value_list[i]?.toDouble() // 운동거리 가져오기
                         }
                         else -> {
                         }
@@ -207,7 +206,7 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
                                 a.setTitle("정보를 입력해주세요.")
                                 a.setMessage("해당 기능을 정상적으로 이용하기 위해서는 정보를 입력해주셔야합니다.")
                                 a.setPositiveButton("이동") { DialogInterface, i ->
-                                    var intent = Intent(activity!!, qpqpslsl::class.java)
+                                    var intent = Intent(activity!!, information_registor::class.java)
                                     startActivity(intent)
                                 }
                                 a.setNegativeButton("취소"){ dialogInterface: DialogInterface, i: Int ->
@@ -233,7 +232,7 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
                         a.setTitle("정보를 입력해주세요.")
                         a.setMessage("해당 기능을 정상적으로 이용하기 위해서는 정보를 입력해주셔야합니다.")
                         a.setPositiveButton("이동") { DialogInterface, i ->
-                            var intent = Intent(activity!!, qpqpslsl::class.java)
+                            var intent = Intent(activity!!, information_registor::class.java)
                             startActivity(intent)
                         }
                         a.setNegativeButton("취소") { dialogInterface: DialogInterface, i: Int ->
@@ -269,20 +268,12 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
                 when { // 프로바이더 제공자 활성화 여부 체크
 
                     isGPSEnabled -> {
-                        val location =
-                                lm.getLastKnownLocation(LocationManager.GPS_PROVIDER) // GPS 기반으로 위치를 찾는다
-                        //getLastKnownLocation(매개변수) -> 매개변수에 담긴 문자열이 위치 정보 제공자. 위치값 얻지 못하면 null 반환, 값 가져오면 관련된 정보를 location 객체에 담아 전달.
-
                         positi = 1
 
                         Log.d("지금 여기임2", "여기임2")
                     }
 
                     isNetworkEnabled -> {
-                        val location =
-                                lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER) // 인터넷 기반으로 위치를 찾는다
-                        //getLastKnownLocation(매개변수) -> 매개변수에 담긴 문자열이 위치 정보 제공자. 위치값 얻지 못하면 null 반환, 값 가져오면 관련된 정보를 location 객체에 담아 전달.
-
                         positi = 1
 
                         Log.d("지금 여기임1", "여기임1")
@@ -354,10 +345,13 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
                 add_check = 2
 
                 fun information() {
-                    move_count_sub = move_count_sub?.plus(String.format("%.2f", count).toDouble())
-                    information.child("운동 거리는").setValue(String.format("%.1f", move_count_sub) + "M")
-                    information.child("운동 날짜는").setValue("${now.format(dateformat)}")
+                    move_count_sub = move_count_sub?.plus(count)
+                    information.child("운동거리").setValue(String.format("%.1f", move_count_sub))
+                    information.child("목표까지").setValue(String.format("%.1f", move_object_percent?.minus(count.toDouble())))
+                    move_object_percent = move_object_percent!! - count.toDouble()
                 }
+
+                information()
 
                 addmarker()
                 lm.removeUpdates(gpsLocationListener)
@@ -367,8 +361,8 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
                 gps = 0 // 초기화 작업
 
                 if (middleLatLng != null) {
-                    Toast.makeText(activity, "이동한 거리는 ${String.format("%.2f", count)}M입니다.", Toast.LENGTH_SHORT).show()
-                    Log.d("거리 확인", String.format("%.2f", count))
+                    Toast.makeText(activity, "이동한 거리는 ${count}m입니다.", Toast.LENGTH_SHORT).show()
+                    Log.d("거리 확인", "$count")
                 } else {
                     Toast.makeText(activity, "이동 거리가 너무 짧아 기록을 할 수 없습니다.", Toast.LENGTH_SHORT).show()
                     Log.d("거리 확인", "일정 거리를 이동하지 않음.")

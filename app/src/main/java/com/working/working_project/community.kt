@@ -75,11 +75,9 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
                     }
                     (binding.getboard.adapter as recycle_board).notifyDataSetChanged()
                 }
-
                 override fun onCancelled(error: DatabaseError) {
                 }
             })
-        Log.d("확인이댱", e.toString())
 
         binding.getboard.layoutManager = LinearLayoutManager(activity!!, LinearLayoutManager.VERTICAL, false)
         binding.getboard.setHasFixedSize(true)

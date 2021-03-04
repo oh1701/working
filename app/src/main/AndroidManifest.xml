@@ -15,14 +15,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.NoActionBar"
         android:usesCleartextTraffic="true">
-        <activity android:name=".qpqpslsl"></activity>
+        <activity android:name=".information_registor"></activity>
+        <activity android:name=".qpqpslsl" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAsextB4kSkvkx0UmzZ_nc1hcx5wXwACCo" />
 
         <activity android:name=".join_member_frag" />
-        <activity android:name=".MainActivity"/>
+        <activity android:name=".MainActivity" />
         <activity android:name=".login_main_frag">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
