@@ -51,6 +51,8 @@ class weather_frag : Fragment() {
     var TO_GRID = 0
     var TO_GPS = 1
 
+    lateinit var lm:LocationManager
+
     var loca_keung = 0.0
     var loca_we = 0.0
 
@@ -73,6 +75,8 @@ class weather_frag : Fragment() {
                     Log.d("loca_we", loca_we.toString())
                     Log.d("loca_keung", loca_keung.toString())
                     check_loca = 1
+
+                    Toast.makeText(activity!!, "현재 위치 불러옴", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -142,7 +146,7 @@ class weather_frag : Fragment() {
                     ContextCompat.checkSelfPermission(activity!!.applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(activity!!, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 0) //허용하지 않았다면 request 코드 0을 부여.
             } else {
-                val lm = activity!!.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                lm = activity!!.getSystemService(Context.LOCATION_SERVICE) as LocationManager
                 // 위치 (위도, 경도 구하기 시작.)
                 val isGPSEnabled: Boolean =
                         lm.isProviderEnabled(LocationManager.GPS_PROVIDER) // gps 권한 여부 Boolean 표현
@@ -151,15 +155,12 @@ class weather_frag : Fragment() {
 
                 when { // 프로바이더 제공자 활성화 여부 체크
                     isGPSEnabled -> {
-                        Toast.makeText(activity!!, "현재위치 불러옴", Toast.LENGTH_SHORT).show()
-
                         positi = 1
                         Log.d("확인1", "isGPSEnabled")
 
                     }
 
                     isNetworkEnabled -> {
-
                         positi = 1
                         Log.d("확인1", "isNetworkEnabled")
                     }
@@ -182,22 +183,17 @@ class weather_frag : Fragment() {
                 if (positi == 1) {
                     lm.requestLocationUpdates(
                             LocationManager.GPS_PROVIDER,
-                            1000, //몇초
+                            500, //몇초
                             0F, // 몇미터
                             gpsLocationListener
                     )
 
                     lm.requestLocationUpdates(
                             LocationManager.NETWORK_PROVIDER,
-                            1000, //몇초
+                            500, //몇초
                             0F, // 몇미터
                             gpsLocationListener
                     )
-
-                    if (loca_we != 0.0 && loca_keung != 0.0) {
-                        lm.removeUpdates(gpsLocationListener)
-                        Log.d("확인1", "removeUpdates")
-                    }
                 }
             }
 
@@ -207,6 +203,7 @@ class weather_frag : Fragment() {
                 if (loca_we != 0.0 && loca_keung != 0.0) {
                     address = geocoder.getFromLocation(loca_we, loca_keung, 1)
                     Log.d("찾은 주소", address.get(0).toString())
+                    lm.removeUpdates(gpsLocationListener)
                 }
 
                 var subject_area: String
@@ -229,6 +226,8 @@ class weather_frag : Fragment() {
                 binding.location.text = " 현재 위치 : ${subject_area}"
 
                 location_check = 1
+                 Log.d("확인1", "removeUpdates")
+
             }
             else
                 Toast.makeText(activity!!, "위치를 불러오지 못했습니다. 잠시 후 다시 눌러주세요.", Toast.LENGTH_SHORT).show()

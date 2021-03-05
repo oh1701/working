@@ -5,9 +5,26 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".information_registor"
-    android:background="@color/white"
     android:orientation="vertical"
-    android:weightSum="10">
+    android:weightSum="12">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1.5"
+        android:layout_marginBottom="15dp">
+
+        <TextView
+            android:text="내 정보를 입력해주세요"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:autoSizeTextType="uniform"
+            android:autoSizeMaxTextSize="24sp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="10dp"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,16 +32,19 @@
         android:layout_weight="1.7"
         android:padding="10dp"
         android:weightSum="5"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginBottom="10dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_weight="1.5"
             android:layout_margin="10dp">
 
             <TextView
                 android:id="@+id/text_1"
+                android:text="성별"
+                android:gravity="center"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
 
@@ -39,13 +59,16 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="4"
+            android:layout_weight="3.5"
             android:layout_margin="10dp">
 
             <EditText
                 android:id="@+id/edit_1"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
+
+                android:autoSizeTextType="uniform"
+                android:gravity="center"
 
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
@@ -60,16 +83,19 @@
         android:layout_weight="1.7"
         android:padding="10dp"
         android:weightSum="5"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginBottom="10dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_weight="1.5"
             android:layout_margin="10dp">
 
             <TextView
                 android:id="@+id/text_2"
+                android:text="이름"
+                android:gravity="center"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
 
@@ -84,13 +110,15 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="4"
+            android:layout_weight="3.5"
             android:layout_margin="10dp">
 
             <EditText
                 android:id="@+id/edit_2"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:autoSizeTextType="uniform"
+                android:gravity="center"
 
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
@@ -105,16 +133,19 @@
     android:layout_weight="1.7"
     android:padding="10dp"
     android:weightSum="5"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+        android:layout_marginBottom="10dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="1"
+        android:layout_weight="1.5"
         android:layout_margin="10dp">
 
         <TextView
             android:id="@+id/text_3"
+            android:text="나이"
+            android:gravity="center"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
 
@@ -129,14 +160,17 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="4"
+        android:layout_weight="3.5"
         android:layout_margin="10dp">
 
         <EditText
             android:id="@+id/edit_3"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:autoSizeTextType="uniform"
+            android:gravity="center"
 
+            android:inputType="number"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toLeftOf="parent"
@@ -150,16 +184,19 @@
         android:layout_weight="1.7"
         android:padding="10dp"
         android:weightSum="5"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginBottom="10dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_weight="1.5"
             android:layout_margin="10dp">
 
             <TextView
                 android:id="@+id/text_4"
+                android:text="목표거리\n(미터)"
+                android:gravity="center"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
 
@@ -174,14 +211,17 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="4"
+            android:layout_weight="3.5"
             android:layout_margin="10dp">
 
             <EditText
                 android:id="@+id/edit_4"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:autoSizeTextType="uniform"
+                android:gravity="center"
 
+                android:inputType="number"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toLeftOf="parent"
@@ -189,22 +229,26 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1.7"
         android:padding="10dp"
         android:weightSum="5"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginBottom="10dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_weight="1.5"
             android:layout_margin="10dp">
 
             <TextView
                 android:id="@+id/text_5"
+                android:text="다짐"
+                android:gravity="center"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
 
@@ -219,13 +263,15 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="4"
+            android:layout_weight="3.5"
             android:layout_margin="10dp">
 
             <EditText
                 android:id="@+id/edit_5"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:autoSizeTextType="uniform"
+                android:gravity="center"
 
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
@@ -235,4 +281,46 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:padding="10dp"
+        android:weightSum="5"
+        android:orientation="horizontal">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <Button
+                android:id="@+id/negative_btn"
+                android:text="취소"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"/>
+
+            <Button
+                android:id="@+id/change_btn"
+                android:text="변경하기"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:visibility="invisible"
+
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toRightOf="@id/negative_btn"
+                app:layout_constraintRight_toLeftOf="@id/positive_btn"/>
+
+            <Button
+                android:id="@+id/positive_btn"
+                android:text="설정"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintRight_toRightOf="parent"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
 </LinearLayout>

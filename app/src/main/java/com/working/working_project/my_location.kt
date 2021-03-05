@@ -1,6 +1,7 @@
 package com.working.working_project
 
 import android.Manifest
+import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
@@ -18,6 +19,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
@@ -82,7 +86,20 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
     val dateformat = DateTimeFormatter.ofPattern("yyyyMMdd")
     var move_object_percent:Double? = null
 
-
+    lateinit var positive_btn: Button
+    lateinit var negative_btn: Button
+    lateinit var name_text: TextView
+    lateinit var age_text: TextView
+    lateinit var gender_text: TextView
+    lateinit var move_object_text: TextView
+    lateinit var move_count_text: TextView
+    lateinit var name_edit: EditText
+    lateinit var age_edit: EditText
+    lateinit var gender_edit: EditText
+    lateinit var move_object_edit: EditText
+    lateinit var my_object_mind: EditText
+    lateinit var dialog_view: View
+    lateinit var dialog: Dialog
 
     private var key_list= arrayOfNulls<String>(99)
     private var value_list= arrayOfNulls<String>(99)
@@ -152,6 +169,55 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
 
         binding = ActivityMyLocationBinding.inflate(layoutInflater, container, false)
 
+        dialog_view = layoutInflater.inflate(R.layout.activity_information_registor, null)
+
+        name_text = dialog_view.findViewById(R.id.text_1)
+        age_text = dialog_view.findViewById(R.id.text_2)
+        gender_text = dialog_view.findViewById(R.id.text_3)
+        move_object_text = dialog_view.findViewById(R.id.text_4)
+        move_count_text = dialog_view.findViewById(R.id.text_5)
+
+        gender_edit = dialog_view.findViewById(R.id.edit_1)
+        name_edit = dialog_view.findViewById(R.id.edit_2)
+        age_edit = dialog_view.findViewById(R.id.edit_3)
+        move_object_edit = dialog_view.findViewById(R.id.edit_4)
+        my_object_mind = dialog_view.findViewById(R.id.edit_5)
+
+        positive_btn = dialog_view.findViewById(R.id.positive_btn)
+        negative_btn = dialog_view.findViewById(R.id.negative_btn)
+
+        dialog = Dialog(activity!!)
+        dialog.setContentView(dialog_view)
+
+        positive_btn.setOnClickListener {
+            when (gender_edit.text.toString()) {
+                "남자" -> {
+                    information.child("이름").setValue(name_edit.text.toString())
+                    information.child("나이").setValue(age_edit.text.toString())
+                    information.child("성별").setValue(gender_edit.text.toString())
+                    information.child("목표설정").setValue(move_object_edit.text.toString() + ".0")
+                    information.child("목표까지").setValue(move_object_edit.text.toString() + ".0")
+                    information.child("다짐").setValue(my_object_mind.text.toString())
+                    dialog.dismiss()
+                }
+                "여자" -> {
+                    information.child("이름").setValue(name_edit.text.toString())
+                    information.child("나이").setValue(age_edit.text.toString())
+                    information.child("성별").setValue(gender_edit.text.toString())
+                    information.child("목표설정").setValue(move_object_edit.text.toString() + ".0")
+                    information.child("목표까지").setValue(move_object_edit.text.toString() + ".0")
+                    information.child("다짐").setValue(my_object_mind.text.toString())
+                    dialog.dismiss()
+                }
+                else -> {
+                    Toast.makeText(activity!!, "남자 or 여자로만 입력해주세요.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        negative_btn.setOnClickListener {
+            dialog.dismiss()
+        }
+
         firebaseDatabase = FirebaseDatabase.getInstance().getReference()
         user = FirebaseAuth.getInstance().currentUser
         val username = user!!.email.toString().split("@")
@@ -195,52 +261,46 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
                     }
                 }
 
-                    if(infor_checkd >= 6)
-                    {
-                        for(i in value_list.indices){
-                            if(value_list[i] == "0.0")
-                                infor_count++
-                            if(infor_count >= 3)
-                            {
-                                var a = AlertDialog.Builder(activity!!)
-                                a.setTitle("정보를 입력해주세요.")
-                                a.setMessage("해당 기능을 정상적으로 이용하기 위해서는 정보를 입력해주셔야합니다.")
-                                a.setPositiveButton("이동") { DialogInterface, i ->
-                                    var intent = Intent(activity!!, information_registor::class.java)
-                                    startActivity(intent)
-                                }
-                                a.setNegativeButton("취소"){ dialogInterface: DialogInterface, i: Int ->
-                                    false
-                                }
-
-                                a.show()
-                                break
+                if (infor_checkd >= 6) {
+                    for (i in value_list.indices) {
+                        if (value_list[i] == "0.0")
+                            infor_count++
+                        if (infor_count >= 5) {
+                            var a = AlertDialog.Builder(activity!!)
+                            a.setTitle("정보를 입력해주세요.")
+                            a.setMessage("해당 기능을 정상적으로 이용하기 위해서는 정보를 입력해주셔야합니다.")
+                            a.setPositiveButton("이동") { DialogInterface, i ->
+                                dialog.show()
+                            }
+                            a.setNegativeButton("취소") { dialogInterface: DialogInterface, i: Int ->
                             }
 
+                            a.show()
+                            break
                         }
+
+                    }
+                }
+
+                if (infor_checkd <= 5) {
+                    information.child("이름").setValue("0.0")
+                    information.child("성별").setValue("0.0")
+                    information.child("나이").setValue("0.0")
+                    information.child("목표설정").setValue("0.0")
+                    information.child("목표까지").setValue("0.0")
+                    information.child("운동거리").setValue("0.0")
+
+                    var a = AlertDialog.Builder(activity!!)
+                    a.setTitle("정보를 입력해주세요.")
+                    a.setMessage("해당 기능을 정상적으로 이용하기 위해서는 정보를 입력해주셔야합니다.")
+                    a.setPositiveButton("이동") { DialogInterface, i ->
+                        dialog.show()
+                    }
+                    a.setNegativeButton("취소") { dialogInterface: DialogInterface, i: Int ->
                     }
 
-                    if(infor_checkd <= 5) {
-                        information.child("이름").setValue("0.0")
-                        information.child("성별").setValue("0.0")
-                        information.child("나이").setValue("0.0")
-                        information.child("목표설정").setValue("0.0")
-                        information.child("목표까지").setValue("0.0")
-                        information.child("운동거리").setValue("0.0")
-
-                        var a = AlertDialog.Builder(activity!!)
-                        a.setTitle("정보를 입력해주세요.")
-                        a.setMessage("해당 기능을 정상적으로 이용하기 위해서는 정보를 입력해주셔야합니다.")
-                        a.setPositiveButton("이동") { DialogInterface, i ->
-                            var intent = Intent(activity!!, information_registor::class.java)
-                            startActivity(intent)
-                        }
-                        a.setNegativeButton("취소") { dialogInterface: DialogInterface, i: Int ->
-                            false
-                        }
-
-                        a.show()
-                    }
+                    a.show()
+                }
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -347,8 +407,10 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
                 fun information() {
                     move_count_sub = move_count_sub?.plus(count)
                     information.child("운동거리").setValue(String.format("%.1f", move_count_sub))
-                    information.child("목표까지").setValue(String.format("%.1f", move_object_percent?.minus(count.toDouble())))
-                    move_object_percent = move_object_percent!! - count.toDouble()
+                    if(move_object_percent!! >= 0.1) {
+                        information.child("목표까지").setValue(String.format("%.1f", move_object_percent?.minus(count.toDouble())))
+                        move_object_percent = move_object_percent!! - count.toDouble()
+                    }
                 }
 
                 information()
