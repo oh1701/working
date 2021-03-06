@@ -75,8 +75,6 @@ class weather_frag : Fragment() {
                     Log.d("loca_we", loca_we.toString())
                     Log.d("loca_keung", loca_keung.toString())
                     check_loca = 1
-
-                    Toast.makeText(activity!!, "현재 위치 불러옴", Toast.LENGTH_SHORT).show()
                 }
             }
         }

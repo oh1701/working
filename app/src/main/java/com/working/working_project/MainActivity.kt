@@ -2,6 +2,8 @@ package com.working.working_project
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlarmManager
+import android.app.DatePickerDialog
 import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
@@ -15,10 +17,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -184,7 +183,20 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 dialog.setTitle("앱 테마 변경")
 
             }
-            R.id.navi_Alim -> Toast.makeText(applicationContext, "네비", Toast.LENGTH_SHORT).show()
+            R.id.navi_Alim -> {
+                var calendar = Calendar.getInstance()
+                var year1 = calendar.get(Calendar.YEAR)
+                var month1 = calendar.get(Calendar.MONTH)
+                var day1 = calendar.get(Calendar.DAY_OF_MONTH)
+
+                val datePicker = DatePickerDialog(this, DatePickerDialog.OnDateSetListener { view: DatePicker?, year: Int, month: Int, dayOfMonth: Int ->
+                    Toast.makeText(this, "$year-${month + 1}-$dayOfMonth 저장되었음.", Toast.LENGTH_SHORT).show()
+                }, year1, month1, day1)
+
+                datePicker.show()
+
+                var alarm = getSystemService(ALARM_SERVICE)
+            }
 
             R.id.navi_login_logout -> {
                 if (firebaseAuth.currentUser != null) {
@@ -192,8 +204,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     Toast.makeText(this, "로그아웃", Toast.LENGTH_SHORT).show()
                     var intent = Intent(this, login_main_frag::class.java)
                     startActivity(intent)
-                }
-                else
+                } else
                     Toast.makeText(this, "로그인 상태가 아닙니다.", Toast.LENGTH_SHORT).show()
             }
         }
