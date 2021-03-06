@@ -1,15 +1,7 @@
 package com.working.working_project
 
-import android.Manifest
-import android.app.Activity
-import android.app.AlarmManager
-import android.app.DatePickerDialog
-import android.app.Dialog
-import android.content.Context
-import android.content.DialogInterface
+import android.app.*
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.graphics.drawable.ColorDrawable
 import android.location.*
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
@@ -19,30 +11,15 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
-import androidx.fragment.app.FragmentManager
-import com.google.android.gms.dynamic.SupportFragmentWrapper
-import com.google.android.gms.maps.GoogleMap
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthSettings
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.ktx.Firebase
 import com.working.working_project.databinding.ActivityMainBinding
-import retrofit2.Call
-import retrofit2.Response
-import retrofit2.http.GET
-import retrofit2.http.Query
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.properties.Delegates
 
 // 출시하기 전 날씨 APi 이용 저작권 어떻게 하는지 확인하기 (표시해야하는지 등)
 
@@ -184,18 +161,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             }
             R.id.navi_Alim -> {
-                var calendar = Calendar.getInstance()
-                var year1 = calendar.get(Calendar.YEAR)
-                var month1 = calendar.get(Calendar.MONTH)
-                var day1 = calendar.get(Calendar.DAY_OF_MONTH)
-
-                val datePicker = DatePickerDialog(this, DatePickerDialog.OnDateSetListener { view: DatePicker?, year: Int, month: Int, dayOfMonth: Int ->
-                    Toast.makeText(this, "$year-${month + 1}-$dayOfMonth 저장되었음.", Toast.LENGTH_SHORT).show()
-                }, year1, month1, day1)
-
-                datePicker.show()
-
-                var alarm = getSystemService(ALARM_SERVICE)
+                datepicker()
             }
 
             R.id.navi_login_logout -> {
@@ -249,6 +215,56 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 binding.runningRecommend.text = "대화 나누기"
             }
         }
+    }
+
+    fun datepicker(){
+        var alarm = getSystemService(ALARM_SERVICE) as AlarmManager
+
+        var calendar = Calendar.getInstance()
+
+        var year1 = calendar.get(Calendar.YEAR)
+        var month1 = calendar.get(Calendar.MONTH)
+        var day1 = calendar.get(Calendar.DAY_OF_MONTH)
+        var hour1 = calendar.get(Calendar.HOUR_OF_DAY)
+        var minute1 = calendar.get(Calendar.MINUTE)
+
+        val datePicker = DatePickerDialog(this, DatePickerDialog.OnDateSetListener { view: DatePicker?, year: Int, month: Int, dayOfMonth: Int ->
+            Toast.makeText(this, "$year-${month + 1}-$dayOfMonth 저장되었음.", Toast.LENGTH_SHORT).show()
+
+            year1 = year
+            month1 = month + 1
+            day1 = dayOfMonth
+
+            val timePicker = TimePickerDialog(this, TimePickerDialog.OnTimeSetListener { view, hourOfDay, minute ->
+                hour1 = hourOfDay
+                minute1 = minute
+
+                calendar.set(year1, month1, day1, hour1, minute1, 0) // 캘린더에 년도 ~ 분 값 넣기.
+
+
+                if (calendar.before(Calendar.getInstance())) {
+                    Toast.makeText(this, "현재 일보다 이전 시간입니다.", Toast.LENGTH_SHORT).show()
+                }
+                else{
+                    Log.d("확인", "$year1,$month1,$day1,$hour1,$minute1")
+                    Toast.makeText(this, "$hourOfDay 시-$minute 분 저장되었음.", Toast.LENGTH_SHORT).show()
+
+                    val intent = Intent(this, alarmrecive::class.java)
+                    val pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+
+                    if (Build.VERSION.SDK_INT >= 23) { //sdk 버전에 따른 알람설정
+                        alarm.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
+                    } else {
+                        alarm.set(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
+                    }
+
+                }
+            }, hour1, minute1, false)
+            timePicker.show()
+
+        }, year1, month1, day1)
+
+        datePicker.show()
     }
 
 }

@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:allowBackup="true"
@@ -15,8 +17,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.NoActionBar"
         android:usesCleartextTraffic="true">
-        <activity android:name=".information_registor"></activity>
-        <activity android:name=".qpqpslsl" />
+        <activity android:name=".alarmactivity"></activity>
+        <activity android:name=".information_registor" />
+
+        <receiver
+            android:name=".alarmrecive"
+            android:enabled="true"
+            android:exported="false" />
+
+        <service
+            android:name=".alarmservice"
+            android:enabled="true" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
