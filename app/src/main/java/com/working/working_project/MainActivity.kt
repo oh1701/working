@@ -3,6 +3,7 @@ package com.working.working_project
 import android.app.*
 import android.content.Intent
 import android.location.*
+import android.media.RingtoneManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -11,6 +12,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.core.app.NotificationCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.navigation.NavigationView
@@ -19,6 +21,8 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.working.working_project.databinding.ActivityMainBinding
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 // 출시하기 전 날씨 APi 이용 저작권 어떻게 하는지 확인하기 (표시해야하는지 등)
@@ -60,6 +64,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             dialog_view = layoutInflater.inflate(R.layout.activity_information_registor, null)
 
+            val dateformat = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+            val nowdate =  LocalDateTime.now().format(dateformat)
+            Log.d("확인111", nowdate.toString())
+
             name_text = dialog_view.findViewById(R.id.text_1)
             age_text = dialog_view.findViewById(R.id.text_2)
             gender_text = dialog_view.findViewById(R.id.text_3)
@@ -81,7 +89,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             firebaseDatabase = FirebaseDatabase.getInstance().getReference()
             user = FirebaseAuth.getInstance().currentUser
             val username = user!!.email.toString().split("@")
-            information = FirebaseDatabase.getInstance().getReference("member").child("${username[0]}")
+            information = FirebaseDatabase.getInstance().getReference("member").child("${username[0]}").child(nowdate.toString())
 
             val ft = supportFragmentManager.beginTransaction()
            var a = ft.replace(R.id.main_frame, weather_frag()).commit()
@@ -121,7 +129,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         var d = 0
 
         when (item.itemId) {
-            R.id.navi_schedule -> Log.d("확인", "확인")
+            R.id.navi_schedule -> show()
             R.id.navi_alarm -> Toast.makeText(applicationContext, "네비", Toast.LENGTH_SHORT).show()
             R.id.navi_my -> {
                 positive_btn.setOnClickListener {
@@ -218,8 +226,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     fun datepicker(){
-        var alarm = getSystemService(ALARM_SERVICE) as AlarmManager
-
         var calendar = Calendar.getInstance()
 
         var year1 = calendar.get(Calendar.YEAR)
@@ -232,7 +238,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             Toast.makeText(this, "$year-${month + 1}-$dayOfMonth 저장되었음.", Toast.LENGTH_SHORT).show()
 
             year1 = year
-            month1 = month + 1
+            month1 = month
             day1 = dayOfMonth
 
             val timePicker = TimePickerDialog(this, TimePickerDialog.OnTimeSetListener { view, hourOfDay, minute ->
@@ -240,32 +246,45 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 minute1 = minute
 
                 calendar.set(year1, month1, day1, hour1, minute1, 0) // 캘린더에 년도 ~ 분 값 넣기.
+                Toast.makeText(this, "$hour1-$minute1 저장되었음.", Toast.LENGTH_SHORT).show()
 
-
-                if (calendar.before(Calendar.getInstance())) {
-                    Toast.makeText(this, "현재 일보다 이전 시간입니다.", Toast.LENGTH_SHORT).show()
-                }
-                else{
-                    Log.d("확인", "$year1,$month1,$day1,$hour1,$minute1")
-                    Toast.makeText(this, "$hourOfDay 시-$minute 분 저장되었음.", Toast.LENGTH_SHORT).show()
-
-                    val intent = Intent(this, alarmrecive::class.java)
-                    val pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-
-                    if (Build.VERSION.SDK_INT >= 23) { //sdk 버전에 따른 알람설정
-                        alarm.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
-                    } else {
-                        alarm.set(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
-                    }
-
-                }
             }, hour1, minute1, false)
             timePicker.show()
 
         }, year1, month1, day1)
-
         datePicker.show()
     }
 
-}
+    fun show(){
+        var builder = NotificationCompat.Builder(this, "default")
+        builder.setSmallIcon(R.mipmap.ic_launcher)
+        builder.setContentTitle("알림 제목")
+        builder.setContentText("알림 세부 텍스트")
 
+        var intentA = Intent(this, MainActivity::class.java)
+        var pendingIntent:PendingIntent = PendingIntent.getActivity(this, 0, intentA, PendingIntent.FLAG_UPDATE_CURRENT)
+
+        builder.setContentIntent(pendingIntent) // 노티피케이션을 클릭했을때 pendingintent 안의 intentA로 실행
+
+        var ringtoneUri = RingtoneManager.getActualDefaultRingtoneUri(this, RingtoneManager.TYPE_NOTIFICATION)
+        builder.setSound(ringtoneUri)
+
+        var vibrate = LongArray(4 ){i -> (i * 100).toLong()}
+        builder.setVibrate(vibrate)
+        builder.setAutoCancel(true) // 눌렀을때 노티피케이션이 삭제되게 할것인지 설정.
+
+        var manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            manager.createNotificationChannel(NotificationChannel("default", "기본 채널", NotificationManager.IMPORTANCE_DEFAULT))
+        }
+
+        manager.notify(1, builder.build())
+    }
+
+    fun remove_notifi(){
+        var manager_remove = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        manager_remove.cancel(1)
+    }
+
+}

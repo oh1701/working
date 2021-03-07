@@ -17,17 +17,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.NoActionBar"
         android:usesCleartextTraffic="true">
-        <activity android:name=".alarmactivity"></activity>
         <activity android:name=".information_registor" />
-
-        <receiver
-            android:name=".alarmrecive"
-            android:enabled="true"
-            android:exported="false" />
-
-        <service
-            android:name=".alarmservice"
-            android:enabled="true" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"

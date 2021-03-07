@@ -135,7 +135,10 @@
             android:gravity="center"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
     <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/run_record"
+
         android:layout_margin="10dp"
         android:layout_width="match_parent"
         android:layout_height="0dp"

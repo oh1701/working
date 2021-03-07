@@ -57,9 +57,10 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
     private lateinit var firebaseDatabase: DatabaseReference
     var googleMap: GoogleMap? = null
     private lateinit var information:DatabaseReference
+    private lateinit var date_run:DatabaseReference
 
-    lateinit var StartLatLng: LatLng // 버튼 누르면 true, false로 바뀌는것 사용해서 스타트 버튼 위치 지정.
-    lateinit var lm: LocationManager
+    private lateinit var StartLatLng: LatLng // 버튼 누르면 true, false로 바뀌는것 사용해서 스타트 버튼 위치 지정.
+    private lateinit var lm: LocationManager
 
     var isGPSEnabled: Boolean = false
     var isNetworkEnabled: Boolean = false
@@ -103,6 +104,11 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
 
     private var key_list= arrayOfNulls<String>(99)
     private var value_list= arrayOfNulls<String>(99)
+
+    private var date_key_list= arrayOfNulls<String>(99)
+    private var date_value_list= arrayOfNulls<String>(99)
+
+    var date_run_checkd:Double = 0.0 // 해당 날짜 운동기록 확인용
 
 
     //위치 변동 시 처음 위치로 기록하고 그 이후 기록을 처음위치부터 시작하기.
@@ -189,6 +195,9 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
         dialog = Dialog(activity!!)
         dialog.setContentView(dialog_view)
 
+        val dateformat = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val nowdate =  LocalDateTime.now().format(dateformat)
+
         positive_btn.setOnClickListener {
             when (gender_edit.text.toString()) {
                 "남자" -> {
@@ -223,7 +232,6 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
         val username = user!!.email.toString().split("@")
         information = FirebaseDatabase.getInstance().getReference("member").child("${username[0]}")
 
-
         information.addListenerForSingleValueEvent(object : ValueEventListener { // 값 가져오기
             var i = -1
             var infor_count = 0
@@ -231,6 +239,7 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
             override fun onDataChange(snapshot: DataSnapshot) {
                 for (ds in snapshot.children) {
                     i++
+                    var check = 0
                     key_list[i] = ds.key
                     value_list[i] = ds.value.toString()
                     Log.d("값은", "$ds") // 어레이리스트에 ds.key와 value 담기.
@@ -255,6 +264,15 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
                         "운동거리" -> {
                             infor_checkd++
                             move_count_sub = value_list[i]?.toDouble() // 운동거리 가져오기
+                        }
+                        "$nowdate" -> {
+                            if(value_list[i]?.toDouble() != null){
+                                date_run_checkd = value_list[i]!!.toDouble()
+                            }
+                            else {
+                                information.child("$nowdate").setValue("0.0")
+                                date_run_checkd = 0.0
+                            }
                         }
                         else -> {
                         }
@@ -399,17 +417,22 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
         }
 
         binding.runEnd.setOnClickListener {
+            val dateformat = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+            val nowdate =  LocalDateTime.now().format(dateformat)
 
             if (walk_checkd == 1) {
                 walk_checkd = 2
                 add_check = 2
 
                 fun information() {
-                    move_count_sub = move_count_sub?.plus(count)
-                    information.child("운동거리").setValue(String.format("%.1f", move_count_sub))
                     if(move_object_percent!! >= 0.1) {
+                        move_count_sub = move_count_sub?.plus(count)
+                        date_run_checkd = date_run_checkd.plus(count.toDouble())
+
+                        information.child("운동거리").setValue(String.format("%.1f", move_count_sub))
                         information.child("목표까지").setValue(String.format("%.1f", move_object_percent?.minus(count.toDouble())))
                         move_object_percent = move_object_percent!! - count.toDouble()
+                        information.child("$nowdate").setValue(String.format("%.1f", date_run_checkd))
                     }
                 }
 
