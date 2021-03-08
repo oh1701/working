@@ -47,6 +47,7 @@ class weather_frag : Fragment() {
     var positi = 0
     var check_loca = 0
     lateinit var address: List<Address>
+    var ddd = 0
 
     var TO_GRID = 0
     var TO_GPS = 1
@@ -171,6 +172,9 @@ class weather_frag : Fragment() {
                                     Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                             startActivity(intent)
                         }
+                        alter.setNegativeButton("취소"){DialogInterface, i ->
+
+                        }
                         Log.d("확인1", "else")
                         alter.show()
 
@@ -197,38 +201,53 @@ class weather_frag : Fragment() {
 
 
         binding.btn.setOnClickListener {
-            if(check_loca == 1) {
-                if (loca_we != 0.0 && loca_keung != 0.0) {
-                    address = geocoder.getFromLocation(loca_we, loca_keung, 1)
-                    Log.d("찾은 주소", address.get(0).toString())
-                    lm.removeUpdates(gpsLocationListener)
-                }
+            if (positi != 0) {
+                if (check_loca == 1) {
+                    if (loca_we != 0.0 && loca_keung != 0.0) {
+                        address = geocoder.getFromLocation(loca_we, loca_keung, 1)
+                        Log.d("찾은 주소", address.get(0).toString())
+                        lm.removeUpdates(gpsLocationListener)
+                    }
 
-                var subject_area: String
+                    var subject_area: String
 
-                if (address.get(0).subAdminArea != null) {
+                    if (address.get(0).subAdminArea != null) {
 
-                    var admin = address.get(0).adminArea.toString()
-                    var subadmin = address.get(0).subAdminArea.toString()
-                    var locality = address.get(0).locality.toString()
-                    var thorough = address.get(0).thoroughfare.toString()
-                    subject_area = admin + subadmin + locality + thorough
-                } else {
-                    var admin = address.get(0).adminArea.toString()
-                    var locality = address.get(0).locality.toString()
-                    var thorough = address.get(0).thoroughfare.toString()
-                    subject_area = "$admin " + "$locality " + "$thorough"
-                }
+                        var admin = address.get(0).adminArea.toString()
+                        var subadmin = address.get(0).subAdminArea.toString()
+                        var locality = address.get(0).locality.toString()
+                        var thorough = address.get(0).thoroughfare.toString()
+                        subject_area = admin + subadmin + locality + thorough
+                    } else {
+                        var admin = address.get(0).adminArea.toString()
+                        var locality = address.get(0).locality.toString()
+                        var thorough = address.get(0).thoroughfare.toString()
+                        subject_area = "$admin " + "$locality " + "$thorough"
+                    }
 
-                Log.d("찾은 주소 지번 빼고", subject_area)
-                binding.location.text = " 현재 위치 : ${subject_area}"
+                    Log.d("찾은 주소 지번 빼고", subject_area)
+                    binding.location.text = " 현재 위치 : ${subject_area}"
 
-                location_check = 1
-                 Log.d("확인1", "removeUpdates")
+                    location_check = 1
+                    Log.d("확인1", "removeUpdates")
 
+                } else
+                    Toast.makeText(activity!!, "위치를 불러오지 못했습니다. 잠시 후 다시 눌러주세요.", Toast.LENGTH_SHORT).show()
             }
             else
-                Toast.makeText(activity!!, "위치를 불러오지 못했습니다. 잠시 후 다시 눌러주세요.", Toast.LENGTH_SHORT).show()
+            {
+                var alter = AlertDialog.Builder(activity!!)
+                alter.setTitle("권한 허용").setMessage("위치 서비스가 켜져있지 않습니다. 기능을 켜주시기 바랍니다.")
+                alter.setPositiveButton("켜기") { DialogInterface, i ->
+                    var intent =
+                            Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                    startActivity(intent)
+                }
+                alter.setNegativeButton("취소"){DialogInterface, i ->
+
+                }
+                alter.show()
+            }
         }
         /*변환 확인*/
         binding.btn2.setOnClickListener {
@@ -313,122 +332,123 @@ class weather_frag : Fragment() {
                                 var total = num_Of_rows - 1
 
                                 for (e in 0..total) {
-                                        for (j in 0..2) {
-                                            if (e == j) {
-                                                if (response.body()!!.response.body.items.item[e].category == "REH") { // 습도
-                                                    if (humidity[j] == null)
-                                                        humidity.set(j, response.body()!!.response.body.items.item[e].fcstValue.toString())
-                                                }
+                                    for (j in 0..2) {
+                                        if (e == j) {
+                                            if (response.body()!!.response.body.items.item[e].category == "REH") { // 습도
+                                                if (humidity[j] == null)
+                                                    humidity.set(j, response.body()!!.response.body.items.item[e].fcstValue.toString())
+                                            }
 
-                                                if (response.body()!!.response.body.items.item[e].category == "T1H") {
-                                                    if (Temperature[j] == null)
-                                                        Temperature.set(j, response.body()!!.response.body.items.item[e].fcstValue.toString()) // 기온
-                                                }
+                                            if (response.body()!!.response.body.items.item[e].category == "T1H") {
+                                                if (Temperature[j] == null)
+                                                    Temperature.set(j, response.body()!!.response.body.items.item[e].fcstValue.toString()) // 기온
+                                            }
 
-                                                if (response.body()!!.response.body.items.item[e].category == "SKY") { // 하늘 상태
-                                                    if (sky_weather[j] == null) {
-                                                        when (response.body()!!.response.body.items.item[e].fcstValue.toInt()) {
-                                                            1 -> sky_weather.set(j, "맑음")
-                                                            3 -> sky_weather.set(j, "구름 많음")
-                                                            4 -> sky_weather.set(j, "흐림")
-                                                        }
-                                                    }
-                                                }
-
-                                                if (response.body()!!.response.body.items.item[e].category == "RN1") { // 하늘 상태
-                                                    if (rain_L[j] == null) {
-                                                        var f = response.body()!!.response.body.items.item[e].fcstValue.toInt()
-                                                        if (f < 0.1f)
-                                                            rain_L.set(j, "없음")
-                                                        else if (f >= 0.1f && f < 1.0f)
-                                                            rain_L.set(j, "0.1 ~ 1mm")
-                                                        else if (f >= 1.0f && f < 5.0f)
-                                                            rain_L.set(j, "1 ~ 4mm")
-                                                        else if (f >= 5.0f && f < 10.0f)
-                                                            rain_L.set(j, "5 ~ 9mm")
-                                                        else if (f >= 10.0f && f < 20.0f)
-                                                            rain_L.set(j, "10 ~ 19mm")
-                                                        else if (f >= 20.0f && f < 40.0f)
-                                                            rain_L.set(j, "20 ~ 39mm")
-                                                        else if (f >= 40.0f && f < 70.0f)
-                                                            rain_L.set(j, "40 ~ 69mm")
-                                                        else
-                                                            rain_L.set(j, "70mm ~")
-
-                                                    }
-                                                }
-
-                                                if (response.body()!!.response.body.items.item[e].category == "PTY") {
-                                                    if (rain_form[j] == null) {
-                                                        when (response.body()!!.response.body.items.item[e].fcstValue.toInt()) { // 강수형태
-                                                            0 -> rain_form.set(j, "비 없음")
-                                                            1 -> rain_form.set(j, "비")
-                                                            2 -> rain_form.set(j, "비/눈")
-                                                            3 -> rain_form.set(j, "눈")
-                                                            4 -> rain_form.set(j, "소나기")
-                                                            5 -> rain_form.set(j, "빗방울")
-                                                            6 -> rain_form.set(j, "진눈개비")
-                                                            7 -> rain_form.set(j, "눈날림")
-                                                        }
+                                            if (response.body()!!.response.body.items.item[e].category == "SKY") { // 하늘 상태
+                                                if (sky_weather[j] == null) {
+                                                    when (response.body()!!.response.body.items.item[e].fcstValue.toInt()) {
+                                                        1 -> sky_weather.set(j, "맑음")
+                                                        3 -> sky_weather.set(j, "구름 많음")
+                                                        4 -> sky_weather.set(j, "흐림")
                                                     }
                                                 }
                                             }
 
-                                                if (i == 9 && e == total && j == 2) {
+                                            if (response.body()!!.response.body.items.item[e].category == "RN1") { // 하늘 상태
+                                                if (rain_L[j] == null) {
+                                                    var f = response.body()!!.response.body.items.item[e].fcstValue.toInt()
+                                                    if (f < 0.1f)
+                                                        rain_L.set(j, "없음")
+                                                    else if (f >= 0.1f && f < 1.0f)
+                                                        rain_L.set(j, "0.1 ~ 1mm")
+                                                    else if (f >= 1.0f && f < 5.0f)
+                                                        rain_L.set(j, "1 ~ 4mm")
+                                                    else if (f >= 5.0f && f < 10.0f)
+                                                        rain_L.set(j, "5 ~ 9mm")
+                                                    else if (f >= 10.0f && f < 20.0f)
+                                                        rain_L.set(j, "10 ~ 19mm")
+                                                    else if (f >= 20.0f && f < 40.0f)
+                                                        rain_L.set(j, "20 ~ 39mm")
+                                                    else if (f >= 40.0f && f < 70.0f)
+                                                        rain_L.set(j, "40 ~ 69mm")
+                                                    else
+                                                        rain_L.set(j, "70mm ~")
 
-                                                    /*binding.text.text = "결과는 이렇습니다. : 현재 시간 ${response.body()!!.response.body.items.item[0].fcstTime} 의 하늘 상태는 ${sky_weather[0]} 이며 강수 형태는 ${rain_form[0]} 입니다. " +
+                                                }
+                                            }
+
+                                            if (response.body()!!.response.body.items.item[e].category == "PTY") {
+                                                if (rain_form[j] == null) {
+                                                    when (response.body()!!.response.body.items.item[e].fcstValue.toInt()) { // 강수형태
+                                                        0 -> rain_form.set(j, "비 없음")
+                                                        1 -> rain_form.set(j, "비")
+                                                        2 -> rain_form.set(j, "비/눈")
+                                                        3 -> rain_form.set(j, "눈")
+                                                        4 -> rain_form.set(j, "소나기")
+                                                        5 -> rain_form.set(j, "빗방울")
+                                                        6 -> rain_form.set(j, "진눈개비")
+                                                        7 -> rain_form.set(j, "눈날림")
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        if (i == 9 && e == total && j == 2) {
+
+                                            /*binding.text.text = "결과는 이렇습니다. : 현재 시간 ${response.body()!!.response.body.items.item[0].fcstTime} 의 하늘 상태는 ${sky_weather[0]} 이며 강수 형태는 ${rain_form[0]} 입니다. " +
                                                     "기온은 ${Temperature[0]} 입니다. 습도는 ${humidity[0]} 입니다."*/
-                                                    if (sky_weather[0] == "맑음" && rain_form[0] == "비 없음")
-                                                        binding.weatherImage.setImageResource(R.drawable.sunny)
-                                                    else if (sky_weather[0] == "구름 많음" && rain_form[0] == "비 없음")
-                                                        binding.weatherImage.setImageResource(R.drawable.cloud)
-                                                    else if (sky_weather[0] == "흐림" && rain_form[0] == "비 없음")
-                                                        binding.weatherImage.setImageResource(R.drawable.hrim)
-                                                    else if (rain_form[0] == "비" || rain_form[0] == "소나기" || rain_form[0] == "빗방울" || rain_form[0] == "비/눈")
-                                                        binding.weatherImage.setImageResource(R.drawable.rain)
-                                                    else if (rain_form[0] == "진눈개비" || rain_form[0] == "눈" || rain_form[0] == "눈날림")
-                                                        binding.weatherImage.setImageResource(R.drawable.snow)
+                                            if (sky_weather[0] == "맑음" && rain_form[0] == "비 없음")
+                                                binding.weatherImage.setImageResource(R.drawable.sunny)
+                                            else if (sky_weather[0] == "구름 많음" && rain_form[0] == "비 없음")
+                                                binding.weatherImage.setImageResource(R.drawable.cloud)
+                                            else if (sky_weather[0] == "흐림" && rain_form[0] == "비 없음")
+                                                binding.weatherImage.setImageResource(R.drawable.hrim)
+                                            else if (rain_form[0] == "비" || rain_form[0] == "소나기" || rain_form[0] == "빗방울" || rain_form[0] == "비/눈")
+                                                binding.weatherImage.setImageResource(R.drawable.rain)
+                                            else if (rain_form[0] == "진눈개비" || rain_form[0] == "눈" || rain_form[0] == "눈날림")
+                                                binding.weatherImage.setImageResource(R.drawable.snow)
 
 
-                                                    Log.d("확인", "결과는 이렇습니다. : 현재 시간 ${response.body()!!.response.body.items.item[0].fcstTime} 의 하늘 상태는 ${sky_weather[0]} 이며 강수 형태는 ${rain_form[0]} 입니다. " +
-                                                            "기온은 ${Temperature[0]} 입니다. 습도는 ${humidity[0]} 입니다.")
+                                            Log.d("확인", "결과는 이렇습니다. : 현재 시간 ${response.body()!!.response.body.items.item[0].fcstTime} 의 하늘 상태는 ${sky_weather[0]} 이며 강수 형태는 ${rain_form[0]} 입니다. " +
+                                                    "기온은 ${Temperature[0]} 입니다. 습도는 ${humidity[0]} 입니다.")
 
 
-                                                    binding.time0.text = response.body()!!.response.body.items.item[0].fcstTime.substring(0,2) + "시"
-                                                    binding.time1.text = response.body()!!.response.body.items.item[1].fcstTime.substring(0,2) + "시"
-                                                    binding.time2.text = response.body()!!.response.body.items.item[2].fcstTime.substring(0,2) + "시" // 문자열 0번째부터 2 - 1번째까지 자른다.
+                                            binding.time0.text = response.body()!!.response.body.items.item[0].fcstTime.substring(0, 2) + "시"
+                                            binding.time1.text = response.body()!!.response.body.items.item[1].fcstTime.substring(0, 2) + "시"
+                                            binding.time2.text = response.body()!!.response.body.items.item[2].fcstTime.substring(0, 2) + "시" // 문자열 0번째부터 2 - 1번째까지 자른다.
 
-                                                    binding.time0Text1.text = Temperature[0]
-                                                    binding.time0Text2.text = humidity[0]
-                                                    binding.time0Text3.text = rain_L[0]
+                                            binding.time0Text1.text = Temperature[0]
+                                            binding.time0Text2.text = humidity[0]
+                                            binding.time0Text3.text = rain_L[0]
 
-                                                    binding.time1Text1.text = Temperature[1]
-                                                    binding.time1Text2.text = humidity[1]
-                                                    binding.time1Text3.text = rain_L[1]
+                                            binding.time1Text1.text = Temperature[1]
+                                            binding.time1Text2.text = humidity[1]
+                                            binding.time1Text3.text = rain_L[1]
 
-                                                    binding.time2Text1.text = Temperature[2]
-                                                    binding.time2Text2.text = humidity[2]
-                                                    binding.time2Text3.text = rain_L[2]
+                                            binding.time2Text1.text = Temperature[2]
+                                            binding.time2Text2.text = humidity[2]
+                                            binding.time2Text3.text = rain_L[2]
 
-                                                }
-
-                                            }
+                                        }
 
                                     }
+
+                                }
                             }
                         }
 
                         override fun onFailure(call: Call<WEATHER>, t: Throwable) { //연결 실패시 시
-                            Log.d("api fail :", t.toString())
-                            Toast.makeText(activity!!, "데이터를 받아올 수 없습니다. 네트워크를 확인해주세요", Toast.LENGTH_SHORT).show()
+                            if (ddd == 0) {
+                                Log.d("api fail :", t.toString())
+                                Toast.makeText(activity!!, "데이터를 받아올 수 없습니다. 네트워크를 확인해주세요", Toast.LENGTH_SHORT).show()
+                                ddd = 1
+                            }
                         }
 
                     })
 
                 }
-            }
-
-            else if(location_check == 0)
+            } else if (location_check == 0)
                 Toast.makeText(activity!!, "위치 확인을 우선 해주세요.", Toast.LENGTH_SHORT).show()
             else
                 Toast.makeText(activity!!, "위치를 받아올 수 없습니다. 어플을 재실행해주세요.", Toast.LENGTH_SHORT).show()

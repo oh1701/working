@@ -12,6 +12,7 @@ import android.graphics.Insets.add
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.net.ConnectivityManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -119,44 +120,43 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
 
     val gpsLocationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) { //위치 값이 변경되면 실행되는 함수
-            location?.let {
-                if (gps == 0) { // lastlocation이 잘 안먹혀서 이거로 설정했음.  gps 변수는 최초 위치 저장용으로 설정해놨음.
+                location.let {
+                    if (gps == 0) { // lastlocation이 잘 안먹혀서 이거로 설정했음.  gps 변수는 최초 위치 저장용으로 설정해놨음.
 
-                    Log.d("확인 gps", "gps 부분이다.")
+                        Log.d("확인 gps", "gps 부분이다.")
 
-                    gps = 1
+                        gps = 1
+
+                        middleLatLng = LatLng(it.latitude, it.longitude)
+                        run() //실행 순서가 run(), onmapready, locationchanged 순서라 run을 가장 늦게 주려면 여기에 줘야함.
+                    }
+
+                    if (lat2 != null && lng2 != null) {
+                        lat1 = lat2!! //lat2가 변하기 전에 기록
+                        lng1 = lng2!! // lng2가 변하기 전에 기록
+                    }
+
+
+                    lat2 = it.latitude
+                    lng2 = it.longitude
 
                     middleLatLng = LatLng(it.latitude, it.longitude)
-                    run() //실행 순서가 run(), onmapready, locationchanged 순서라 run을 가장 늦게 주려면 여기에 줘야함.
+
+                    Log.d("확인미들", middleLatLng.toString())
                 }
 
-                if(lat2 != null && lng2 != null) {
-                    lat1 = lat2!! //lat2가 변하기 전에 기록
-                    lng1 = lng2!! // lng2가 변하기 전에 기록
+                if (walk_checkd == 1 && positi == 1) { // 클릭 -> 위치 변경 확인 -> run() -> addmarker -> polyline
+                    Log.d("확인", "폴리라인 변경에서")
+                    if (lat1 != null && lng2 != null && lat2 != null && lng2 != null) {
+                        if (count + 20.0 < String.format("%.1f", runEnd(lat1!!, lng1!!, lat2!!, lng2!!)).toFloat()) {
+                        } else {
+                            count += String.format("%.1f", runEnd(lat1!!, lng1!!, lat2!!, lng2!!)).toFloat() // lat1과 lat2의 위치 비교 후 카운트에 더하기.
+                            Log.d("카운트는", count.toString())
+                        }
+                    }
+
+                    polyline()
                 }
-
-
-                lat2 = it.latitude
-                lng2 = it.longitude
-
-                middleLatLng = LatLng(it.latitude, it.longitude)
-
-                Log.d("확인미들", middleLatLng.toString())
-
-                if (walk_checkd == 0 && googleMap != null) {
-                    googleMap!!.moveCamera(CameraUpdateFactory.newLatLngZoom(middleLatLng, 17F))
-                }
-            }
-
-            if (walk_checkd == 1 && positi == 1) {
-                Log.d("확인", "폴리라인 변경에서")
-                if(lat1 != null && lng2 != null && lat2 != null && lng2 != null){
-                    count += String.format("%.1f", runEnd(lat1!!, lng1!!, lat2!!, lng2!!)).toFloat() // lat1과 lat2의 위치 비교 후 카운트에 더하기.
-                    Log.d("카운트는", count.toString())
-                }
-
-                polyline()
-            }
         }
 
         override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
@@ -223,6 +223,7 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
                 }
             }
         }
+
         negative_btn.setOnClickListener {
             dialog.dismiss()
         }
@@ -266,7 +267,7 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
                             move_count_sub = value_list[i]?.toDouble() // 운동거리 가져오기
                         }
                         "$nowdate" -> {
-                            if(value_list[i]?.toDouble() != null){
+                            if(value_list[i] != null){
                                 date_run_checkd = value_list[i]!!.toDouble()
                             }
                             else {
@@ -329,6 +330,24 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
     }
 
     override fun onResume() {
+        val connectivityManager = activity!!.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        var network_check = connectivityManager.activeNetworkInfo
+        var inconnect:Boolean = network_check?.isConnectedOrConnecting == true
+
+        if(inconnect == false){ // 와이파이 , 데이터 미연결시 실행
+            var alter = AlertDialog.Builder(activity!!)
+            alter.setTitle("권한 허용").setMessage("인터넷이 연결되어있지 않습니다. \n해당 기능을 켜지 않을 시 운동 정보가 서버에 입력되지 않습니다.")
+
+            alter.setPositiveButton("데이터 켜기") { DialogInterface, i ->
+                var intent = Intent(android.provider.Settings.ACTION_DATA_USAGE_SETTINGS)
+                startActivity(intent)
+            }
+
+            alter.setNegativeButton("취소"){DialogInterface, i ->
+            }
+
+            alter.show()
+        }
 
         binding.runStart.setOnClickListener {
             if (Build.VERSION.SDK_INT >= 26 && //빌드 SDK 버전이 26 이상이고, 퍼미션 체크를 했을때 퍼미션을 허가받았는지 확인. GRANTED (허가받은)
@@ -344,17 +363,17 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
                         lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER) // 네트워크 권한 여부 Boolean 표현
 
                 when { // 프로바이더 제공자 활성화 여부 체크
-
                     isGPSEnabled -> {
                         positi = 1
 
-                        Log.d("지금 여기임2", "여기임2")
+                        Log.d("확인", "여기임1")
+
                     }
 
                     isNetworkEnabled -> {
                         positi = 1
 
-                        Log.d("지금 여기임1", "여기임1")
+                        Log.d("확인", "여기임2")
                     }
 
                     else -> {// 위치 서비스가 켜져 있지 않은 경우
@@ -364,27 +383,33 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
                             var intent = Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                             startActivity(intent)
                         }
-                        Log.d("지금 여기임3", "여기임3")
+                        alter.setNegativeButton("취소"){DialogInterface, i ->
+
+                        }
+                        Log.d("확인", "여기임3")
                         alter.show()
 
                         positi = 0
                     }
                 }
 
+
                 if (positi == 1) {
 
                     val google_map = childFragmentManager.findFragmentById(R.id.google_map) as SupportMapFragment // fragment 아래의 fragment라 그런지 chiled 사용해서 되었음.
                     google_map.getMapAsync(this) //getMapAsync 로 호출,
-
+                    
+                    Log.d("확인", "location 업데이트 시작부분")
+                    Toast.makeText(activity!!, "위치를 받아오고 있습니다. 잠시만 기다려주세요.", Toast.LENGTH_SHORT).show()
 
                     lm.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                            2000, //몇초
-                            1F, // 몇미터
+                            0, //몇초
+                            0.0F, // 몇미터
                             gpsLocationListener)
 
                     lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
-                            2000, //몇초
-                            1F, // 몇미터
+                            0, //몇초
+                            0.0F, // 몇미터
                             gpsLocationListener) //위치 업데이트
                 }
             }
@@ -425,14 +450,16 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
                 add_check = 2
 
                 fun information() {
-                    if(move_object_percent!! >= 0.1) {
-                        move_count_sub = move_count_sub?.plus(count)
-                        date_run_checkd = date_run_checkd.plus(count.toDouble())
+                    if(move_object_percent != null) {
+                        if (move_object_percent!! >= 0.1) {
+                            move_count_sub = move_count_sub?.plus(count)
+                            date_run_checkd = date_run_checkd.plus(count.toDouble())
 
-                        information.child("운동거리").setValue(String.format("%.1f", move_count_sub))
-                        information.child("목표까지").setValue(String.format("%.1f", move_object_percent?.minus(count.toDouble())))
-                        move_object_percent = move_object_percent!! - count.toDouble()
-                        information.child("$nowdate").setValue(String.format("%.1f", date_run_checkd))
+                            information.child("운동거리").setValue(String.format("%.1f", move_count_sub))
+                            information.child("목표까지").setValue(String.format("%.1f", move_object_percent?.minus(count.toDouble())))
+                            move_object_percent = move_object_percent!! - count.toDouble()
+                            information.child("$nowdate").setValue(String.format("%.1f", date_run_checkd))
+                        }
                     }
                 }
 
@@ -447,7 +474,7 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
 
                 if (middleLatLng != null) {
                     Toast.makeText(activity, "이동한 거리는 ${count}m입니다.", Toast.LENGTH_SHORT).show()
-                    Log.d("거리 확인", "$count")
+                    Log.d("거리 확인", "${String.format("%.1f", count)} m 입니다.")
                 } else {
                     Toast.makeText(activity, "이동 거리가 너무 짧아 기록을 할 수 없습니다.", Toast.LENGTH_SHORT).show()
                     Log.d("거리 확인", "일정 거리를 이동하지 않음.")

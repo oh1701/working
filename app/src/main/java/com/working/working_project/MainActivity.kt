@@ -129,7 +129,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         var d = 0
 
         when (item.itemId) {
-            R.id.navi_schedule -> show()
+            R.id.navi_schedule -> Toast.makeText(applicationContext, "네비", Toast.LENGTH_SHORT).show()
             R.id.navi_alarm -> Toast.makeText(applicationContext, "네비", Toast.LENGTH_SHORT).show()
             R.id.navi_my -> {
                 positive_btn.setOnClickListener {
@@ -169,7 +169,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             }
             R.id.navi_Alim -> {
-                datepicker()
             }
 
             R.id.navi_login_logout -> {
@@ -224,67 +223,4 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
         }
     }
-
-    fun datepicker(){
-        var calendar = Calendar.getInstance()
-
-        var year1 = calendar.get(Calendar.YEAR)
-        var month1 = calendar.get(Calendar.MONTH)
-        var day1 = calendar.get(Calendar.DAY_OF_MONTH)
-        var hour1 = calendar.get(Calendar.HOUR_OF_DAY)
-        var minute1 = calendar.get(Calendar.MINUTE)
-
-        val datePicker = DatePickerDialog(this, DatePickerDialog.OnDateSetListener { view: DatePicker?, year: Int, month: Int, dayOfMonth: Int ->
-            Toast.makeText(this, "$year-${month + 1}-$dayOfMonth 저장되었음.", Toast.LENGTH_SHORT).show()
-
-            year1 = year
-            month1 = month
-            day1 = dayOfMonth
-
-            val timePicker = TimePickerDialog(this, TimePickerDialog.OnTimeSetListener { view, hourOfDay, minute ->
-                hour1 = hourOfDay
-                minute1 = minute
-
-                calendar.set(year1, month1, day1, hour1, minute1, 0) // 캘린더에 년도 ~ 분 값 넣기.
-                Toast.makeText(this, "$hour1-$minute1 저장되었음.", Toast.LENGTH_SHORT).show()
-
-            }, hour1, minute1, false)
-            timePicker.show()
-
-        }, year1, month1, day1)
-        datePicker.show()
-    }
-
-    fun show(){
-        var builder = NotificationCompat.Builder(this, "default")
-        builder.setSmallIcon(R.mipmap.ic_launcher)
-        builder.setContentTitle("알림 제목")
-        builder.setContentText("알림 세부 텍스트")
-
-        var intentA = Intent(this, MainActivity::class.java)
-        var pendingIntent:PendingIntent = PendingIntent.getActivity(this, 0, intentA, PendingIntent.FLAG_UPDATE_CURRENT)
-
-        builder.setContentIntent(pendingIntent) // 노티피케이션을 클릭했을때 pendingintent 안의 intentA로 실행
-
-        var ringtoneUri = RingtoneManager.getActualDefaultRingtoneUri(this, RingtoneManager.TYPE_NOTIFICATION)
-        builder.setSound(ringtoneUri)
-
-        var vibrate = LongArray(4 ){i -> (i * 100).toLong()}
-        builder.setVibrate(vibrate)
-        builder.setAutoCancel(true) // 눌렀을때 노티피케이션이 삭제되게 할것인지 설정.
-
-        var manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            manager.createNotificationChannel(NotificationChannel("default", "기본 채널", NotificationManager.IMPORTANCE_DEFAULT))
-        }
-
-        manager.notify(1, builder.build())
-    }
-
-    fun remove_notifi(){
-        var manager_remove = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        manager_remove.cancel(1)
-    }
-
 }

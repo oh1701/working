@@ -1,12 +1,17 @@
 package com.working.working_project
 
+import android.content.Context
+import android.content.Intent
+import android.net.ConnectivityManager
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ListView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -59,10 +64,31 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
     }
 
     override fun onResume() {
-        var re_array:ArrayList<board_list> = arrayListOf()
+        val connectivityManager = activity!!.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        var network_check = connectivityManager.activeNetworkInfo
+        var inconnect:Boolean = network_check?.isConnectedOrConnecting == true
 
-        var e = 0
-        //가장 처음에 읽어오기를 시행해야한다.
+        if(inconnect == false){ // 와이파이 , 데이터 미연결시 실행
+
+
+            var alter = AlertDialog.Builder(activity!!)
+            alter.setTitle("권한 허용").setMessage("인터넷이 연결되어있지 않습니다. \n해당 기능이 꺼져 있을 시 게시글을 작성, 확인할 수 없습니다.")
+
+            alter.setPositiveButton("데이터 켜기") { DialogInterface, i ->
+                var intent = Intent(Settings.ACTION_DATA_USAGE_SETTINGS)
+                startActivity(intent)
+            }
+
+            alter.setNegativeButton("취소"){DialogInterface, i ->
+            }
+
+            alter.show()
+        }
+        else {
+            var re_array: ArrayList<board_list> = arrayListOf()
+
+            var e = 0
+            //가장 처음에 읽어오기를 시행해야한다.
             all_board.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     re_array.clear()
@@ -75,49 +101,46 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
                     }
                     (binding.getboard.adapter as recycle_board).notifyDataSetChanged()
                 }
+
                 override fun onCancelled(error: DatabaseError) {
                 }
             })
 
-        binding.getboard.layoutManager = LinearLayoutManager(activity!!, LinearLayoutManager.VERTICAL, false)
-        binding.getboard.setHasFixedSize(true)
-        binding.getboard.adapter = recycle_board(re_array)
+            binding.getboard.layoutManager = LinearLayoutManager(activity!!, LinearLayoutManager.VERTICAL, false)
+            binding.getboard.setHasFixedSize(true)
+            binding.getboard.adapter = recycle_board(re_array)
 
-        binding.btn3.setOnClickListener {
+            binding.btn3.setOnClickListener {
 
-        }
-
-
-        Log.d("리즘", "onresume")
-        binding.commuConst.visibility = View.VISIBLE
-
-        binding.btn1.setOnClickListener {
-            if(user == null)
-            {
-                Toast.makeText(activity!!, "로그인 되어있지 않음", Toast.LENGTH_SHORT).show()
-            }
-            else {
-
-                binding.commuConst.visibility = View.GONE
-
-                var ft = activity!!.supportFragmentManager.beginTransaction().replace(R.id.community_frag, community_board()).commit()
-
-                ft
-            }
-        }
-
-        binding.btn2.setOnClickListener {
-            if(user == null)
-            {
-                Toast.makeText(activity!!, "로그인 되어있지 않음", Toast.LENGTH_SHORT).show()
             }
 
-            else {
-                var ft = activity!!.supportFragmentManager.beginTransaction().replace(R.id.community_frag, community_board()).commit()
 
-                ft
+            Log.d("리즘", "onresume")
+            binding.commuConst.visibility = View.VISIBLE
+
+            binding.btn1.setOnClickListener {
+                if (user == null) {
+                    Toast.makeText(activity!!, "로그인 되어있지 않음", Toast.LENGTH_SHORT).show()
+                } else {
+
+                    binding.commuConst.visibility = View.GONE
+
+                    var ft = activity!!.supportFragmentManager.beginTransaction().replace(R.id.community_frag, community_board()).commit()
+
+                    ft
+                }
             }
 
+            binding.btn2.setOnClickListener {
+                if (user == null) {
+                    Toast.makeText(activity!!, "로그인 되어있지 않음", Toast.LENGTH_SHORT).show()
+                } else {
+                    var ft = activity!!.supportFragmentManager.beginTransaction().replace(R.id.community_frag, community_board()).commit()
+
+                    ft
+                }
+
+            }
         }
 
         super.onResume()
