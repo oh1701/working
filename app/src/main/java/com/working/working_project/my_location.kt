@@ -148,7 +148,7 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
                 if (walk_checkd == 1 && positi == 1) { // 클릭 -> 위치 변경 확인 -> run() -> addmarker -> polyline
                     Log.d("확인", "폴리라인 변경에서")
                     if (lat1 != null && lng2 != null && lat2 != null && lng2 != null) {
-                        if (count + 20.0 < String.format("%.1f", runEnd(lat1!!, lng1!!, lat2!!, lng2!!)).toFloat()) {
+                        if (count + 10.0 < String.format("%.1f", runEnd(lat1!!, lng1!!, lat2!!, lng2!!)).toFloat()) {
                         } else {
                             count += String.format("%.1f", runEnd(lat1!!, lng1!!, lat2!!, lng2!!)).toFloat() // lat1과 lat2의 위치 비교 후 카운트에 더하기.
                             Log.d("카운트는", count.toString())
@@ -403,12 +403,12 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
                     Toast.makeText(activity!!, "위치를 받아오고 있습니다. 잠시만 기다려주세요.", Toast.LENGTH_SHORT).show()
 
                     lm.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                            0, //몇초
+                            200, //몇초
                             0.0F, // 몇미터
                             gpsLocationListener)
 
                     lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
-                            0, //몇초
+                            200, //몇초
                             0.0F, // 몇미터
                             gpsLocationListener) //위치 업데이트
                 }

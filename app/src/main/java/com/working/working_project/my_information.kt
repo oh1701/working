@@ -51,16 +51,12 @@ class my_information : Fragment(), inter_run_information {
     lateinit var dialog_view: View
     lateinit var dialog: Dialog
 
-    private var key_list= arrayOfNulls<String>(99)
-    private var value_list= arrayOfNulls<String>(99)
-    private var infor_list = arrayOfNulls<String>(3)
+    var run_count = 0.0
 
-    private var date_key_list= mutableListOf<String>()
-    private var date_value_list= mutableListOf<Double>()
-
-    private var datekey_count = mutableListOf<Int>()
+    var run_re: ArrayList<run_recycle_list> = arrayListOf()
 
     override fun onCreateView(layoutInflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        Log.d("확이", "크리에이트")
 
         binding = ActivityMyInformationBinding.inflate(layoutInflater, container, false)
 
@@ -90,6 +86,16 @@ class my_information : Fragment(), inter_run_information {
 
     override fun onResume() {
         super.onResume()
+        Log.d("확이", "리즘")
+
+        var key_list= arrayOfNulls<String>(99)
+        var value_list= arrayOfNulls<String>(99)
+        var infor_list = arrayOfNulls<String>(3)
+
+        var date_key_list= mutableListOf<String>()
+        var date_value_list= mutableListOf<Double>()
+
+        var datekey_count = mutableListOf<Int>() //프래그먼트 초기화시 이것들이 전역에 가있으면 초기화가 안되어서 onresume에 넣어놨음.
 
         val connectivityManager = activity!!.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         var network_check = connectivityManager.activeNetworkInfo
@@ -115,35 +121,38 @@ class my_information : Fragment(), inter_run_information {
             name.addListenerForSingleValueEvent(object : ValueEventListener {
                 var i = -1
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    i++
                     var f = 0
                     for (ds in snapshot.children) {
+                        i++
                         key_list[i] = ds.key
                         value_list[i] = ds.value.toString()
                         when (key_list[i]) {
                             "목표설정" -> binding.moveObject.text = "목표 거리\n" + value_list[i].toString() + " m"
                             "목표까지" -> binding.moveObjectPercent.text = "남은 거리\n" + value_list[i].toString() + " m"
-                            "운동거리" -> binding.moveWalked.text = "운동 거리\n" + value_list[i].toString() + " m"
+                            "운동거리" -> {
+                                binding.moveWalked.text = "운동 거리\n" + value_list[i].toString() + " m"
+                                run_count = value_list[i]!!.toDouble()
+                            }
                             "다짐" -> binding.promise.text = value_list[i].toString()
                             "이름" -> infor_list[0] = value_list[i].toString()
                             "나이" -> infor_list[1] = value_list[i].toString()
                             "성별" -> infor_list[2] = value_list[i].toString()
                             else -> {
                                 if (key_list[i] != null && value_list[i] != null) {
-                                    datekey_count.add(f, key_list[i]!!.replace("-", "")?.toInt())
-                                    date_key_list.add(f, key_list[i].toString())
-                                    date_value_list.add(f, value_list[i]!!.toDouble())
-                                    Log.d("확인인", datekey_count[f].toString())
-                                    f++
+                                        datekey_count.add(f, key_list[i]!!.replace("-", "")?.toInt())
+                                        date_key_list.add(f, key_list[i].toString())
+                                        date_value_list.add(f, value_list[i]!!.toDouble())
+                                        Log.d("확인인", datekey_count[f].toString())
+                                        f++
                                 }
                             }
                         }
                     }
 
+                    Log.d("문제", datekey_count.indices.toString())
+
                     for (i in datekey_count.indices) {
                         if (datekey_count[i] != null && date_key_list[i] != null) {
-
-                            var run_re: ArrayList<run_recycle_list> = arrayListOf()
 
                             if (datekey_count.size > 1 && datekey_count[0] != null && datekey_count[1] != null) {
                                 for (i in datekey_count.indices) {
@@ -226,24 +235,26 @@ class my_information : Fragment(), inter_run_information {
 
 
         positive_btn.setOnClickListener {
+            if(name_edit.length() >= 1 && age_edit.length() >= 1 && age_edit.length() >= 1 && gender_edit.length() >= 1 && move_object_edit.length() >= 1) // 다짐을 제외한 나머지 문자 입력 확인용.
             when (gender_edit.text.toString()) {
                 "남자" -> {
                     name.child("이름").setValue(name_edit.text.toString())
                     name.child("나이").setValue(age_edit.text.toString())
                     name.child("성별").setValue(gender_edit.text.toString())
                     name.child("목표설정").setValue(move_object_edit.text.toString() + ".0")
-                    name.child("목표까지").setValue(move_object_edit.text.toString() + ".0")
+                    name.child("목표까지").setValue(((move_object_edit.text.toString() + ".0").toDouble() - run_count).toString())
                     name.child("다짐").setValue(my_object_mind.text.toString())
                     dialog.dismiss()
                     val ft = fragmentManager!!.beginTransaction()
                     ft.detach(this).attach(this).commit() // 프래그먼트 리프레쉬 하기
+                    run_re.clear()
                 }
                 "여자" -> {
                     name.child("이름").setValue(name_edit.text.toString())
                     name.child("나이").setValue(age_edit.text.toString())
                     name.child("성별").setValue(gender_edit.text.toString())
                     name.child("목표설정").setValue(move_object_edit.text.toString() + ".0")
-                    name.child("목표까지").setValue(move_object_edit.text.toString() + ".0")
+                    name.child("목표까지").setValue(((move_object_edit.text.toString() + ".0").toDouble() - run_count).toString())
                     name.child("다짐").setValue(my_object_mind.text.toString())
                     dialog.dismiss()
                     val ft = fragmentManager!!.beginTransaction()
@@ -252,6 +263,10 @@ class my_information : Fragment(), inter_run_information {
                 else -> {
                     Toast.makeText(activity!!, "남자 or 여자로만 입력해주세요.", Toast.LENGTH_SHORT).show()
                 }
+            }
+
+            else{
+                Toast.makeText(activity!!, "입력하지 않은 정보가 있습니다.\n(다짐은 선택)", Toast.LENGTH_SHORT).show()
             }
         }
         negative_btn.setOnClickListener {
