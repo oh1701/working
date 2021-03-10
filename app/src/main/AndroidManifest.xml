@@ -18,6 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.NoActionBar"
         android:usesCleartextTraffic="true">
+        <activity android:name=".my_board"></activity>
         <activity android:name=".information_registor" />
 
         <meta-data

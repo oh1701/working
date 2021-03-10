@@ -195,10 +195,6 @@ class my_information : Fragment(), inter_run_information {
                             Log.d("확입", datekey_count.indices.toString())
                             Log.d("확입", date_key_list.indices.toString())
 
-                            binding.runRecord.layoutManager = LinearLayoutManager(activity!!, LinearLayoutManager.VERTICAL, false)
-                            binding.runRecord.setHasFixedSize(true)
-                            binding.runRecord.adapter = run_recycle(run_re)
-
                             binding.nameAge.text = infor_list[0] + "\t/\t" + infor_list[1] + "\t/\t" + infor_list[2]
                             Log.d("확입", datekey_count[i].toString())
                             Log.d("확인인", datekey_count.indices.toString())
@@ -210,6 +206,9 @@ class my_information : Fragment(), inter_run_information {
                 }
             })
         }
+        binding.runRecord.layoutManager = LinearLayoutManager(activity!!, LinearLayoutManager.VERTICAL, false)
+        binding.runRecord.setHasFixedSize(true)
+        binding.runRecord.adapter = run_recycle(run_re)
     }
 
     fun dialog(){

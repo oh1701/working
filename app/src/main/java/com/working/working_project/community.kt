@@ -38,27 +38,6 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
         user = FirebaseAuth.getInstance().currentUser
 
         all_board = FirebaseDatabase.getInstance().getReference("all_board") //all_board 아래 경로의 숫자 확인하기 위해 데이터 불러옴
-        board_data = FirebaseDatabase.getInstance().getReference("board")
-
-        if(board_data != null) {
-            board_data.addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    for(ds in snapshot.children)
-                        Log.d("확인", ds.toString())
-
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    Log.d("확인", "실패")
-                }
-
-            })
-        }
-
-        /*val list_board = arrayListOf(
-            recycle_board.board_list()
-        )*/
-
 
         return binding.root
     }
@@ -67,6 +46,10 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
         val connectivityManager = activity!!.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         var network_check = connectivityManager.activeNetworkInfo
         var inconnect:Boolean = network_check?.isConnectedOrConnecting == true
+
+        var re_array: ArrayList<board_list> = arrayListOf()
+        var re_number = mutableListOf<String>()
+        val username = user!!.email.toString().split("@")
 
         if(inconnect == false){ // 와이파이 , 데이터 미연결시 실행
 
@@ -85,19 +68,22 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
             alter.show()
         }
         else {
-            var re_array: ArrayList<board_list> = arrayListOf()
-
             var e = 0
             //가장 처음에 읽어오기를 시행해야한다.
             all_board.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    re_array.clear()
+                    //re_array.clear()
 
                     for (dd in snapshot.children) {
-                        re_array.add(board_list(dd.key.toString()))
-                        Log.d("어레이", re_array[e].title)
+                        re_number.add(dd.key.toString())
+                        Log.d("어레이", re_number[e])
                         Log.d("확인dd", dd.key.toString())
                         e++
+                    }
+
+                    Log.d("확인ㅇㄴㅇㄴㅇㄴ", re_number.size.toString())
+                    for(i in re_number.size - 1 downTo 0){
+                        re_array.add(board_list(re_number[i].toString(), "작성자 : ${username[0].toString()}")) // 파이어베이스 db는 순서를 정렬할수 없기에 역순으로 넣어서 최신것을 위로가게 만듦
                     }
                     (binding.getboard.adapter as recycle_board).notifyDataSetChanged()
                 }
@@ -122,11 +108,9 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
                 if (user == null) {
                     Toast.makeText(activity!!, "로그인 되어있지 않음", Toast.LENGTH_SHORT).show()
                 } else {
-
                     binding.commuConst.visibility = View.GONE
 
-                    var ft = activity!!.supportFragmentManager.beginTransaction().replace(R.id.community_frag, community_board()).commit()
-
+                    var ft = activity!!.supportFragmentManager.beginTransaction().replace(R.id.community_frag, my_board()).commit()
                     ft
                 }
             }
@@ -135,8 +119,7 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
                 if (user == null) {
                     Toast.makeText(activity!!, "로그인 되어있지 않음", Toast.LENGTH_SHORT).show()
                 } else {
-                    var ft = activity!!.supportFragmentManager.beginTransaction().replace(R.id.community_frag, community_board()).commit()
-
+                    var ft = activity!!.supportFragmentManager.beginTransaction().replace(R.id.community_frag, my_board()).commit()
                     ft
                 }
 
@@ -144,10 +127,6 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
         }
 
         super.onResume()
-    }
-
-    fun run_rank(){ // my_location 클래스에서 종료 시, 합산되는 데이터들은 정보로 이동함. 이곳에서는 정보의 데이터들을 가져와 다른 사람들과 비교하여 순위를 매김.
-        val run_rank = firebaseDatabase.child("run_rank")
     }
 
     /*fun latest(){ //최신 글
