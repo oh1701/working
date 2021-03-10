@@ -58,11 +58,10 @@ class my_board : Fragment() {
                 }
 
             })
+            binding.myGetboard.layoutManager = LinearLayoutManager(activity!!, LinearLayoutManager.VERTICAL, false)
+            binding.myGetboard.setHasFixedSize(true)
+            binding.myGetboard.adapter = recycle_board(re_array, activity!!.supportFragmentManager)
         }
-
-        binding.myGetboard.layoutManager = LinearLayoutManager(activity!!, LinearLayoutManager.VERTICAL, false)
-        binding.myGetboard.setHasFixedSize(true)
-        binding.myGetboard.adapter = recycle_board(re_array)
 
         binding.btn1.setOnClickListener {
             var ft = activity!!.supportFragmentManager.beginTransaction().replace(R.id.community_frag, community()).commit()

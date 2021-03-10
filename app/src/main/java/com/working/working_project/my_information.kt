@@ -28,7 +28,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-class my_information : Fragment(), inter_run_information {
+class my_information : Fragment() {
 
     private lateinit var binding: ActivityMyInformationBinding
     private lateinit var firebaseDatabase:DatabaseReference// 파이어베이스 실시간 db 관리 객체 얻어오기(Root 가져옴.) ()는 최상위 값.
@@ -126,6 +126,8 @@ class my_information : Fragment(), inter_run_information {
                         i++
                         key_list[i] = ds.key
                         value_list[i] = ds.value.toString()
+                        Log.d("확인용1", key_list[i].toString())
+                        Log.d("확인용2", value_list[i].toString())
                         when (key_list[i]) {
                             "목표설정" -> binding.moveObject.text = "목표 거리\n" + value_list[i].toString() + " m"
                             "목표까지" -> binding.moveObjectPercent.text = "남은 거리\n" + value_list[i].toString() + " m"
@@ -192,23 +194,24 @@ class my_information : Fragment(), inter_run_information {
                                 }
                             }
 
+                            binding.runRecord.layoutManager = LinearLayoutManager(activity!!, LinearLayoutManager.VERTICAL, false)
+                            binding.runRecord.setHasFixedSize(true)
+                            binding.runRecord.adapter = run_recycle(run_re)
+
                             Log.d("확입", datekey_count.indices.toString())
                             Log.d("확입", date_key_list.indices.toString())
 
-                            binding.nameAge.text = infor_list[0] + "\t/\t" + infor_list[1] + "\t/\t" + infor_list[2]
                             Log.d("확입", datekey_count[i].toString())
                             Log.d("확인인", datekey_count.indices.toString())
                         }
                     }
-                }
 
+                    binding.nameAge.text = infor_list[0] + "\t/\t" + infor_list[1] + "\t/\t" + infor_list[2]
+                }
                 override fun onCancelled(error: DatabaseError) {
                 }
             })
         }
-        binding.runRecord.layoutManager = LinearLayoutManager(activity!!, LinearLayoutManager.VERTICAL, false)
-        binding.runRecord.setHasFixedSize(true)
-        binding.runRecord.adapter = run_recycle(run_re)
     }
 
     fun dialog(){
@@ -237,9 +240,11 @@ class my_information : Fragment(), inter_run_information {
             if(name_edit.length() >= 1 && age_edit.length() >= 1 && age_edit.length() >= 1 && gender_edit.length() >= 1 && move_object_edit.length() >= 1) // 다짐을 제외한 나머지 문자 입력 확인용.
             when (gender_edit.text.toString()) {
                 "남자" -> {
+                    name.removeValue()
                     name.child("이름").setValue(name_edit.text.toString())
                     name.child("나이").setValue(age_edit.text.toString())
                     name.child("성별").setValue(gender_edit.text.toString())
+                    name.child("운동거리").setValue("0.0")
                     name.child("목표설정").setValue(move_object_edit.text.toString() + ".0")
                     name.child("목표까지").setValue(((move_object_edit.text.toString() + ".0").toDouble() - run_count).toString())
                     name.child("다짐").setValue(my_object_mind.text.toString())
@@ -249,10 +254,12 @@ class my_information : Fragment(), inter_run_information {
                     run_re.clear()
                 }
                 "여자" -> {
+                    name.removeValue()
                     name.child("이름").setValue(name_edit.text.toString())
                     name.child("나이").setValue(age_edit.text.toString())
                     name.child("성별").setValue(gender_edit.text.toString())
                     name.child("목표설정").setValue(move_object_edit.text.toString() + ".0")
+                    name.child("운동거리").setValue("0.0")
                     name.child("목표까지").setValue(((move_object_edit.text.toString() + ".0").toDouble() - run_count).toString())
                     name.child("다짐").setValue(my_object_mind.text.toString())
                     dialog.dismiss()

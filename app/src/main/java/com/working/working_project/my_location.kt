@@ -52,7 +52,7 @@ import kotlin.properties.Delegates
 // count 계산이 조금 이상하다. // 1초, 1m로 설정하고 카운트가 이전 카운트와 20m이상 차이날시 기록하지 않게하기.
 // 네비게이션에 알람 추가, 옆 네비에서 삭제.
 
-class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
+class my_location : Fragment(), OnMapReadyCallback {
 
     private var user: FirebaseUser? = null
     private lateinit var firebaseDatabase: DatabaseReference
@@ -439,7 +439,6 @@ class my_location : Fragment(), OnMapReadyCallback, inter_run_information {
 
             walk_checkd = 1
             Toast.makeText(activity, "달리기 시작", Toast.LENGTH_SHORT).show()
-
         }
 
         binding.runEnd.setOnClickListener {

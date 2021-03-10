@@ -70,6 +70,8 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
         else {
             var e = 0
             //가장 처음에 읽어오기를 시행해야한다.
+
+
             all_board.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     //re_array.clear()
@@ -94,8 +96,7 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
 
             binding.getboard.layoutManager = LinearLayoutManager(activity!!, LinearLayoutManager.VERTICAL, false)
             binding.getboard.setHasFixedSize(true)
-            binding.getboard.adapter = recycle_board(re_array)
-
+            binding.getboard.adapter = recycle_board(re_array, activity!!.supportFragmentManager)
             binding.btn3.setOnClickListener {
 
             }
