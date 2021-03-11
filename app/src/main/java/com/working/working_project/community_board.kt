@@ -103,13 +103,13 @@ class community_board : Fragment() {
                     Log.d("유저 이름", username[0]) // 0번에 @이전의 문자열이 기록되어있음.
 
                     for (i in 0..9999) {
-                        var bc = key_list[i].toString().split(" 번,")
+                        var bc = key_list[i].toString().split(")")
 
-                        if (key_list[0] != null && bc[0] == "null") { //현재 가진 데이터의 경로(Key)의 값이 0 ~ 999 중에 없는 것을 찾는다
+                        if (key_list[0] != null && bc[0] == "null" && bc[0] == "0") { //현재 가진 데이터의 경로(Key)의 값이 0 ~ 999 중에 없는 것을 찾는다
                             Log.d("없는 것은", "$i 임") // 없는 숫자가 있을 경우 그 값을 출력
 
-                            firebaseDatabase.child("all_board").child("$i 번, ${commu_title}").setValue(commu_indata) // 자기 자신이 쓴 글 확인용인 board에 추가
-                            firebaseDatabase.child("my_board").child(username[0]).child("$commu_title").setValue(commu_indata) // 자기 자신이 쓴 글 확인용인 board에 추가
+                            firebaseDatabase.child("all_board").child("$i) ${commu_title}").setValue(commu_indata) // 자기 자신이 쓴 글 확인용인 board에 추가
+                            firebaseDatabase.child("my_board").child(username[0]).child("$i) $commu_title").setValue(commu_indata) // 자기 자신이 쓴 글 확인용인 board에 추가
                                     .addOnCompleteListener {
                                         Toast.makeText(activity!!, "성공", Toast.LENGTH_SHORT).show()
 
@@ -121,9 +121,9 @@ class community_board : Fragment() {
                             break // 반복 종료
                         }
 
-                        if(key_list[0] == null){
-                            firebaseDatabase.child("all_board").child("$i 번, ${commu_title}").setValue(commu_indata) // 자기 자신이 쓴 글 확인용인 board에 추가
-                            firebaseDatabase.child("my_board").child(username[0]).child("$commu_title").setValue(commu_indata) // 자기 자신이 쓴 글 확인용인 board에 추가
+                        if(key_list[0] == null || bc[0] != "0"){
+                            firebaseDatabase.child("all_board").child("$i) ${commu_title}").setValue(commu_indata) // 자기 자신이 쓴 글 확인용인 board에 추가
+                            firebaseDatabase.child("my_board").child(username[0]).child("$i) $commu_title").setValue(commu_indata) // 자기 자신이 쓴 글 확인용인 board에 추가
                                     .addOnCompleteListener {
                                         Toast.makeText(activity!!, "성공", Toast.LENGTH_SHORT).show()
 

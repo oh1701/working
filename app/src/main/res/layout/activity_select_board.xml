@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".select_board"
+    android:orientation="vertical"
+    android:background="@color/white">
+
+        <LinearLayout
+            android:id="@+id/board_lay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:weightSum="15"
+            android:orientation="vertical">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+
+                <TextView
+                    android:id="@+id/commu_title"
+                    android:textSize="18dp"
+
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
+
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:layout_marginRight="5dp"
+
+                    android:gravity="center_vertical"
+
+                    android:textColor="@color/black"
+
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+
+                    android:background="@drawable/all_line"
+
+                    android:textColorHint="@color/black"
+                    android:hint="제목"/>
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="9">
+
+                <TextView
+                    android:id="@+id/commu_indata"
+
+                    android:textSize="18dp"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginTop="5dp"
+
+                    android:layout_marginRight="5dp"
+                    android:layout_marginBottom="5dp"
+
+                    android:background="@drawable/all_line"
+                    android:gravity="start"
+                    android:hint="입력할 내용을 적어주세요"
+                    android:paddingLeft="10dp"
+
+                    android:padding="10dp"
+                    android:paddingRight="10dp"
+
+                    android:scrollbars="vertical"
+
+                    android:textColor="@color/black"
+                    android:textColorHint="#8C8888"
+
+                    app:layout_constraintBottom_toBottomOf="parent"
+
+                    app:layout_constraintHorizontal_bias="1.0"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.0" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="2.8"
+                android:layout_marginBottom="5dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/comment_recycler"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:background="@drawable/all_line"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="2">
+
+                <Button
+                    android:id="@+id/back_pressed"
+                    android:text="돌아가기"
+
+                    android:layout_marginLeft="5dp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/bottom_text"
+                    app:layout_constraintBottom_toBottomOf="parent"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"/>
+
+
+                <Button
+                    android:id="@+id/register"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/bottom_text"
+                    app:layout_constraintBottom_toBottomOf="parent"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:text="댓글 등록"/>
+
+                <EditText
+                    android:id="@+id/bottom_text"
+                    android:textColor="@color/black"
+
+                    android:paddingRight="10dp"
+                    android:paddingLeft="10dp"
+
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
+                    android:hint="댓글을 달아주세요."
+                    android:textSize="18dp"
+                    android:textColorHint="#757474"
+
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintBottom_toTopOf="@id/back_pressed"
+
+                    android:background="@drawable/all_line"
+                    android:backgroundTint="#CCCCCC"
+
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"/>
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </LinearLayout>
+</LinearLayout>

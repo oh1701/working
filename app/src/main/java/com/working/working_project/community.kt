@@ -49,6 +49,7 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
 
         var re_array: ArrayList<board_list> = arrayListOf()
         var re_number = mutableListOf<String>()
+        var re_content = mutableListOf<String>()
         val username = user!!.email.toString().split("@")
 
         if(inconnect == false){ // 와이파이 , 데이터 미연결시 실행
@@ -78,12 +79,12 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
 
                     for (dd in snapshot.children) {
                         re_number.add(dd.key.toString())
+                        re_content.add(dd.value.toString())
                         Log.d("어레이", re_number[e])
                         Log.d("확인dd", dd.key.toString())
                         e++
                     }
 
-                    Log.d("확인ㅇㄴㅇㄴㅇㄴ", re_number.size.toString())
                     for(i in re_number.size - 1 downTo 0){
                         re_array.add(board_list(re_number[i].toString(), "작성자 : ${username[0].toString()}")) // 파이어베이스 db는 순서를 정렬할수 없기에 역순으로 넣어서 최신것을 위로가게 만듦
                     }
@@ -96,22 +97,21 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
 
             binding.getboard.layoutManager = LinearLayoutManager(activity!!, LinearLayoutManager.VERTICAL, false)
             binding.getboard.setHasFixedSize(true)
-            binding.getboard.adapter = recycle_board(re_array, activity!!.supportFragmentManager)
+            binding.getboard.adapter = recycle_board(re_array, activity!!.supportFragmentManager, re_number, re_content)
             binding.btn3.setOnClickListener {
 
             }
 
 
             Log.d("리즘", "onresume")
-            binding.commuConst.visibility = View.VISIBLE
 
             binding.btn1.setOnClickListener {
                 if (user == null) {
                     Toast.makeText(activity!!, "로그인 되어있지 않음", Toast.LENGTH_SHORT).show()
                 } else {
-                    binding.commuConst.visibility = View.GONE
-
-                    var ft = activity!!.supportFragmentManager.beginTransaction().replace(R.id.community_frag, my_board()).commit()
+                    var ft = activity!!.supportFragmentManager.beginTransaction()
+                        .replace(R.id.main_frame, community_board())
+                        .commit()
                     ft
                 }
             }
@@ -120,34 +120,12 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
                 if (user == null) {
                     Toast.makeText(activity!!, "로그인 되어있지 않음", Toast.LENGTH_SHORT).show()
                 } else {
-                    var ft = activity!!.supportFragmentManager.beginTransaction().replace(R.id.community_frag, my_board()).commit()
+                    var ft = activity!!.supportFragmentManager.beginTransaction().replace(R.id.main_frame, my_board()).commit()
                     ft
                 }
-
             }
         }
 
         super.onResume()
     }
-
-    /*fun latest(){ //최신 글
-        val latest = firebaseDatabase.child("latest")
-
-    }
-
-    fun my_writing(){ // 내가 쓴 글
-        val my_writing = firebaseDatabase.child("my_writing")
-
-    }
-
-    fun my_comment(){ // 댓글
-        val comment = firebaseDatabase.child("my_writing")
-
-    }
-
-    fun writing(){
-        val writing = firebaseDatabase.child("writing")
-        writing.child("title")
-        writing.child("body")
-    }*/
 }

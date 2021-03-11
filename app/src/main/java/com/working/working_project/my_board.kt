@@ -38,6 +38,7 @@ class my_board : Fragment() {
 
         var re_array: ArrayList<board_list> = arrayListOf()
         var re_number = mutableListOf<String>()
+        var re_content = mutableListOf<String>()
         val username = user!!.email.toString().split("@")
 
         if (board_data != null) {
@@ -45,6 +46,7 @@ class my_board : Fragment() {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     for (ds in snapshot.children){
                         re_number.add(ds.key.toString())
+                        re_content.add(ds.value.toString())
                     }
 
                     for(i in re_number.size - 1 downTo 0){
@@ -60,11 +62,11 @@ class my_board : Fragment() {
             })
             binding.myGetboard.layoutManager = LinearLayoutManager(activity!!, LinearLayoutManager.VERTICAL, false)
             binding.myGetboard.setHasFixedSize(true)
-            binding.myGetboard.adapter = recycle_board(re_array, activity!!.supportFragmentManager)
+            binding.myGetboard.adapter = recycle_board(re_array, activity!!.supportFragmentManager, re_number, re_content)
         }
 
         binding.btn1.setOnClickListener {
-            var ft = activity!!.supportFragmentManager.beginTransaction().replace(R.id.community_frag, community()).commit()
+            var ft = activity!!.supportFragmentManager.beginTransaction().replace(R.id.main_frame, community()).commit()
             ft
         }
     }

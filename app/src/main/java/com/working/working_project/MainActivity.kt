@@ -15,6 +15,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.app.NotificationCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentTransaction
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -91,9 +93,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             val username = user!!.email.toString().split("@")
             information = FirebaseDatabase.getInstance().getReference("member").child("${username[0]}").child(nowdate.toString())
 
-            val ft = supportFragmentManager.beginTransaction()
-           var a = ft.replace(R.id.main_frame, weather_frag()).commit()
-            a
+            var ft = supportFragmentManager
+                .beginTransaction() // 기본 프래그먼트 부여
+                .add(R.id.main_frame, weather_frag())
+                .commit()
+            ft
 
             binding.naviSetting.setOnClickListener {
                 binding.drawerlay.openDrawer(GravityCompat.START)  // 왼쪽에서 화면 나옴
@@ -189,36 +193,47 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     override fun onBackPressed() { //뒤로가기 선택 시
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        //val ft = supportFragmentManager
 
         if (binding.drawerlay.isDrawerOpen(GravityCompat.START)) // drawerlayout이 GravityCompat.START 식으로 열려있는 경우
         {
             binding.drawerlay.closeDrawers() // 닫아준다
         }
+        /*else if(ft.backStackEntryCount > 0) {
+                ft.popBackStack()
+            Log.d("확인", "여기이이이")
+        }*/
         else {
-            super.onBackPressed()
+            if(user != null) {
+                moveTaskToBack(true)
+                finishAndRemoveTask()
+                android.os.Process.killProcess(android.os.Process.myPid())
+            }
+            else
+                 super.onBackPressed()
         }
     }
 
     private fun set_frag(fragNum: Int) { // 프래그먼트 지정
 
-        val ft = supportFragmentManager.beginTransaction()
+        val ft = supportFragmentManager
 
         when(fragNum){
             0 -> {
-                ft.replace(R.id.main_frame, weather_frag()).commit()
+                ft.beginTransaction().replace(R.id.main_frame, weather_frag()).commit()
                 binding.runningRecommend.text = "날씨 현황 확인하기"
             }
             1 -> {
-                ft.replace(R.id.main_frame, my_location()).commit()
+                ft.beginTransaction().replace(R.id.main_frame, my_location()).addToBackStack(null).commit()
                 binding.runningRecommend.text = "나의 위치"
                 
             }
             2 -> {
-                ft.replace(R.id.main_frame, my_information()).commit()
+                ft.beginTransaction().replace(R.id.main_frame, my_information()).addToBackStack(null).commit()
                 binding.runningRecommend.text = "나의 정보"
             }
             3 -> {
-                ft.replace(R.id.main_frame, community()).commit()
+                ft.beginTransaction().replace(R.id.main_frame, community()).addToBackStack(null).commit()
                 binding.runningRecommend.text = "대화 나누기"
             }
         }
