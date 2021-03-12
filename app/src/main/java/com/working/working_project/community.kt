@@ -2,6 +2,7 @@ package com.working.working_project
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.provider.Settings
@@ -13,6 +14,7 @@ import android.widget.ListView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
@@ -20,6 +22,10 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
 import com.google.firebase.ktx.Firebase
 import com.working.working_project.databinding.ActivityCommunityBinding
+
+var save_title = ""
+var save_commu = ""
+var save_check = 0
 
 class community : Fragment() { // 로그인이 되어 있을 시에만 사용가능한 프래그먼트로 설정.
 
@@ -98,9 +104,6 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
             binding.getboard.layoutManager = LinearLayoutManager(activity!!, LinearLayoutManager.VERTICAL, false)
             binding.getboard.setHasFixedSize(true)
             binding.getboard.adapter = recycle_board(re_array, activity!!.supportFragmentManager, re_number, re_content)
-            binding.btn3.setOnClickListener {
-
-            }
 
 
             Log.d("리즘", "onresume")
@@ -121,6 +124,19 @@ class community : Fragment() { // 로그인이 되어 있을 시에만 사용가
                     Toast.makeText(activity!!, "로그인 되어있지 않음", Toast.LENGTH_SHORT).show()
                 } else {
                     var ft = activity!!.supportFragmentManager.beginTransaction().replace(R.id.main_frame, my_board()).commit()
+                    ft
+                }
+            }
+
+            binding.btn.setOnClickListener {
+                var shared_text: SharedPreferences = activity!!.getSharedPreferences("shared_Text", 0)
+                save_title = shared_text.getString("title", "").toString()
+                save_commu = shared_text.getString("content", "").toString()
+                if (save_title == "" && save_commu == "")
+                    Toast.makeText(activity!!, "저장된 글이 없습니다.", Toast.LENGTH_SHORT).show()
+                else {
+                    save_check = 1
+                    var ft = activity!!.supportFragmentManager.beginTransaction().replace(R.id.main_frame, community_board()).commit()
                     ft
                 }
             }

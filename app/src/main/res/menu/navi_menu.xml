@@ -4,29 +4,6 @@
     <group android:checkableBehavior="single">
 
 
-
-        <item
-            android:id="@+id/navi_work"
-            android:title="[ 운동 ] ">
-
-
-            <menu>
-                <item
-                    android:id="@+id/navi_schedule"
-                    android:icon = "@drawable/ic_baseline_arrow_right_24"
-                    android:title="정보 등록, 변경하기"/>
-
-
-                <item
-                    android:id="@+id/navi_alarm"
-                    android:icon = "@drawable/ic_baseline_arrow_right_24"
-                    android:title="알람 맞추기"/>
-
-
-            </menu>
-
-        </item>
-
         <item
             android:id="@+id/navi_record"
             android:title="[ 기록 ]">
@@ -40,9 +17,9 @@
 
 
              <item
-                 android:id="@+id/navi_pet"
+                 android:id="@+id/navi_my_get_board"
                  android:icon = "@drawable/ic_baseline_arrow_right_24"
-                 android:title="반려동물 기록"/>
+                 android:title="내가 쓴 게시글"/>
 
         </menu>
 
@@ -55,19 +32,19 @@
 
         <menu>
             <item
-                android:id="@+id/navi_Alim"
+                android:id="@+id/navi_information"
                 android:icon = "@drawable/ic_baseline_arrow_right_24"
-                android:title= "알림"/>
+                android:title="정보 등록, 변경하기"/>
 
             <item
                 android:id="@+id/navi_tema_change"
                 android:icon = "@drawable/ic_baseline_arrow_right_24"
                 android:title= "테마 변경하기"/>
 
-            <item
-            android:id="@+id/navi_login_logout"
-            android:icon = "@drawable/ic_baseline_arrow_right_24"
-            android:title= "로그아웃"/>
+                <item
+                android:id="@+id/navi_login_logout"
+                android:icon = "@drawable/ic_baseline_arrow_right_24"
+                android:title= "로그아웃"/>
 
         </menu>
 

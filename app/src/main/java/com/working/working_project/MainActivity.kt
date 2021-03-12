@@ -2,14 +2,19 @@ package com.working.working_project
 
 import android.app.*
 import android.content.Intent
+import android.content.SharedPreferences
+import android.graphics.Color
 import android.location.*
 import android.media.RingtoneManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.util.TypedValue
+import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.WindowManager
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.NotificationCompat
@@ -93,6 +98,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             val username = user!!.email.toString().split("@")
             information = FirebaseDatabase.getInstance().getReference("member").child("${username[0]}").child(nowdate.toString())
 
+            var shared_text: SharedPreferences = getSharedPreferences("main_tema", 0)
+            var tema_checkd = shared_text.getString("main_tema", "")
+            when (tema_checkd){
+                "base_tema" -> binding.drawerlay.setBackgroundResource(R.drawable.main_grade)
+                "black_tema" -> binding.drawerlay.setBackgroundColor(Color.parseColor("#1B1C1C"))
+                "olive_tema" -> binding.drawerlay.setBackgroundColor(Color.parseColor("#2F4939"))
+            }
+
             var ft = supportFragmentManager
                 .beginTransaction() // 기본 프래그먼트 부여
                 .add(R.id.main_frame, weather_frag())
@@ -133,9 +146,17 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         var d = 0
 
         when (item.itemId) {
-            R.id.navi_schedule -> Toast.makeText(applicationContext, "네비", Toast.LENGTH_SHORT).show()
-            R.id.navi_alarm -> Toast.makeText(applicationContext, "네비", Toast.LENGTH_SHORT).show()
+            
+            //기록
             R.id.navi_my -> {
+                supportFragmentManager.beginTransaction().replace(R.id.main_frame, my_information()).commit()
+            }
+            R.id.navi_my_get_board -> {
+                supportFragmentManager.beginTransaction().replace(R.id.main_frame, my_board()).commit()
+            }
+
+            //설정
+            R.id.navi_information -> {
                 positive_btn.setOnClickListener {
                     when (gender_edit.text.toString()) {
                         "남자" -> {
@@ -166,13 +187,66 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 }
                 dialog.show()
             }
-            R.id.navi_pet -> Toast.makeText(applicationContext, "네비", Toast.LENGTH_SHORT).show()
+            
             R.id.navi_tema_change -> {
-                var dialog = AlertDialog.Builder(this)
-                dialog.setTitle("앱 테마 변경")
+                val view = layoutInflater.inflate(R.layout.app_tema, null)
 
-            }
-            R.id.navi_Alim -> {
+                var base_tema = view.findViewById<RadioButton>(R.id.radio1)
+                var black_tema = view.findViewById<RadioButton>(R.id.radio2)
+                var olive_tema = view.findViewById<RadioButton>(R.id.radio3)
+                var choice = view.findViewById<Button>(R.id.choice)
+                var cancel = view.findViewById<Button>(R.id.cancel)
+
+                var shared_text: SharedPreferences = getSharedPreferences("main_tema", 0)
+
+
+                var dialog = Dialog(this)
+                dialog.setContentView(view)
+
+                var width = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 330F, resources.displayMetrics).toInt() //다이얼로그 넓이 지정
+                var height = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 400F, resources.displayMetrics).toInt() //다이얼로그 높이 지정
+                var dialog_layout = dialog.window!!.attributes as WindowManager.LayoutParams // 레이아웃 파람스 지정
+
+                dialog_layout.width = width
+                dialog_layout.height = height//WindowManager.LayoutParams.MATCH_PARENT
+                dialog.window!!.attributes = dialog_layout
+
+                choice.setOnClickListener {
+                    if(base_tema.isChecked) {
+                        binding.drawerlay.setBackgroundResource(R.drawable.main_grade)
+
+                        val edit = shared_text.edit()
+                        edit.remove("main_tema")
+                        edit.putString("main_tema", "base_tema")
+                        edit.apply() // 저장완료
+
+                        dialog.dismiss()
+                    }
+                    else if(black_tema.isChecked) {
+                        binding.drawerlay.setBackgroundColor(Color.parseColor("#1B1C1C"))
+                        val edit = shared_text.edit()
+                        edit.remove("main_tema")
+                        edit.putString("main_tema", "black_tema")
+                        edit.apply()
+
+                        dialog.dismiss()
+                    }
+                    else if(olive_tema.isChecked) {
+                        binding.drawerlay.setBackgroundColor(Color.parseColor("#2F4939"))
+                        val edit = shared_text.edit()
+                        edit.remove("main_tema")
+                        edit.putString("main_tema", "olive_tema")
+                        edit.apply()
+
+                        dialog.dismiss()
+                    }
+                }
+                cancel.setOnClickListener {
+                    dialog.dismiss()
+                }
+
+                dialog.show()
+
             }
 
             R.id.navi_login_logout -> {

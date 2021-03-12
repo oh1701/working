@@ -6,7 +6,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
@@ -42,22 +44,35 @@ class select_board : Fragment() {
     override fun onResume() {
         super.onResume()
         val username = user!!.email.toString().split("@")
+        var comment_id_check = mutableListOf<String>()
+        var comment_content_check = mutableListOf<String>()
+        var com_rec:ArrayList<comment> = arrayListOf()
+        var checkd = 0 // 데이터 받았는지 확인용
 
-        board_comment.addListenerForSingleValueEvent(object : ValueEventListener {
+        board_comment.child(full_title).addListenerForSingleValueEvent(object : ValueEventListener {
             var a = 0
             override fun onDataChange(snapshot: DataSnapshot) {
                 for(ad in snapshot.children){
+                    comment_id_check.add(a, ad.key.toString())
+                    comment_content_check.add(a, ad.value.toString())
+                    com_rec.add(comment(ad.key.toString(), ad.value.toString()))
+
                     Log.d("확인이여여", a.toString())
                     Log.d("확인이여여", ad.toString())
                     a++
+                    checkd = 1
                     //여기에 리사이클러뷰 텍스트 추가하기.
                 }
+
+                binding.commentRecycler.layoutManager = LinearLayoutManager(activity!!, LinearLayoutManager.VERTICAL, false)
+                binding.commentRecycler.setHasFixedSize(true)
+                binding.commentRecycler.adapter = comment_recycler(com_rec)
             }
 
             override fun onCancelled(error: DatabaseError) {
             }
-
         })
+
         binding.commuTitle.text = select_title.toString()
         binding.commuIndata.text = select_content.toString()
 
@@ -67,9 +82,21 @@ class select_board : Fragment() {
         }
 
         binding.register.setOnClickListener {
-            board_comment.child("$full_title").child("$username").setValue(binding.bottomText.text.toString())
-            val ft = fragmentManager!!.beginTransaction()
-            ft.detach(this).attach(this).commit() // 프래그먼트 리프레쉬 하기
+            if(binding.bottomText.text.isNotEmpty()) {
+                if (checkd != 0) {
+                    var i = comment_id_check.size
+                    board_comment.child(full_title).child("$i, " + username[0]).setValue(binding.bottomText.text.toString()) //번호를 집어넣어서 최신 댓글이 아래로가게, 아이디가 같아도 안지워지게 정렬.
+                    binding.bottomText.text = null
+                } else {
+                    board_comment.child(full_title).child("0, " + username[0]).setValue(binding.bottomText.text.toString()) // 댓글이 아예 없으면 새로운 댓글 생성
+                    binding.bottomText.text = null
+                }
+
+                val ft = fragmentManager!!.beginTransaction()
+                ft.detach(this).attach(this).commit() // 프래그먼트 리프레쉬 하기
+            }
+            else
+                Toast.makeText(activity!!, "댓글을 입력해주세요.", Toast.LENGTH_SHORT).show()
         }
 
         //Log.d("확인", position.toString() + "와" + size.toString() + "와" + title + content)
