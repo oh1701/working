@@ -27,10 +27,7 @@ var save_title = ""
 var save_commu = ""
 var save_check = 0
 
-class community : Fragment() { // 로그인이 되어 있을 시에만 사용가능한 프래그먼트로 설정.
-
-    // 로그인 -> 메인화면 -> 1. 글작성 2. 최신글 3. 나의 글 4. 나의 댓글 만들기 or  << 위험하니 글 말고 다이어트 순위를 가까운 지역 내 순위를 정한 후 기록 설정.
-    // 순서대로 전송하기 위해서는 가장앞에 번호를 추가, 이후 아이디로 타이틀.
+class community : Fragment() {
 
     lateinit var binding:ActivityCommunityBinding
     lateinit var firebaseDatabase:DatabaseReference// 파이어베이스 실시간 db 관리 객체 얻어오기(Root 가져옴.) ()는 최상위 값.

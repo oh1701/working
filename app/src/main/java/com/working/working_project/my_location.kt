@@ -49,9 +49,6 @@ import kotlin.properties.Delegates
 
 // fragment 에서 context 를 사용하려고하면 activity가 아니기 때문에 불가능. 그러므로 getActivity. activity 함수를 사용하여 액티비티를 얻어와야 한다.
 
-// count 계산이 조금 이상하다. // 1초, 1m로 설정하고 카운트가 이전 카운트와 20m이상 차이날시 기록하지 않게하기.
-// 네비게이션에 알람 추가, 옆 네비에서 삭제.
-
 class my_location : Fragment(), OnMapReadyCallback {
 
     private var user: FirebaseUser? = null
@@ -269,7 +266,7 @@ class my_location : Fragment(), OnMapReadyCallback {
                         }
                         "$nowdate" -> {
                             if(value_list[i] != null){
-                                date_run_checkd = value_list[i]!!.toDouble()
+                                date_run_checkd = value_list[i]?.toDouble()!!
                             }
                             else {
                                 information.child("$nowdate").setValue("0.0")

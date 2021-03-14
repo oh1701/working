@@ -32,12 +32,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-// 출시하기 전 날씨 APi 이용 저작권 어떻게 하는지 확인하기 (표시해야하는지 등)
-
-// 달력과 함께 날마다 달렸을 시, v자로 체크 기록을 보여주는 장소.
-// 해당 날을 터치 시 정보창으로 이동하여 해당 날의 거리와 시간을 기록한다.
-
-
+// 만약 출시하는 경우 날씨 APi 이용 표시
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 

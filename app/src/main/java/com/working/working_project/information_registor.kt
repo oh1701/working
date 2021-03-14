@@ -19,24 +19,10 @@ class information_registor : AppCompatActivity() {
 
     lateinit var binding: ActivityInformationRegistorBinding
 
-    /*var user: FirebaseUser? = null
-    lateinit var get_information: DatabaseReference
-
-    private var key_list = arrayOfNulls<String>(99)
-    private var value_list = arrayOfNulls<String>(99)
-    private var infor_checkd = 0*/
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityInformationRegistorBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-
-        /*user = FirebaseAuth.getInstance().currentUser
-        val username = user!!.email.toString().split("@")
-        get_information =
-            FirebaseDatabase.getInstance().getReference("member").child("${username[0]}")*/
-
 
     }
 }

@@ -129,11 +129,19 @@ class my_information : Fragment() {
                         Log.d("확인용1", key_list[i].toString())
                         Log.d("확인용2", value_list[i].toString())
                         when (key_list[i]) {
-                            "목표설정" -> binding.moveObject.text = "목표 거리\n" + value_list[i].toString() + " m"
-                            "목표까지" -> binding.moveObjectPercent.text = "남은 거리\n" + value_list[i].toString() + " m"
+                            "목표설정" -> {
+                                if(value_list[i] != null) {
+                                binding.moveObject.text = "목표 거리\n" + value_list[i].toString() + " m"}
+                            }
+                            "목표까지" -> {
+                                if(value_list[i] != null) {
+                                binding.moveObjectPercent.text = "남은 거리\n" + value_list[i].toString() + " m"}
+                            }
                             "운동거리" -> {
-                                binding.moveWalked.text = "운동 거리\n" + value_list[i].toString() + " m"
-                                run_count = value_list[i]!!.toDouble()
+                                if(value_list[i] != null && value_list[i] != "") {
+                                    binding.moveWalked.text = "운동 거리\n" + value_list[i].toString() + " m"
+                                    run_count = value_list[i]!!.toDouble()
+                                }
                             }
                             "다짐" -> binding.promise.text = value_list[i].toString()
                             "이름" -> infor_list[0] = value_list[i].toString()
@@ -154,59 +162,57 @@ class my_information : Fragment() {
                     Log.d("문제", datekey_count.indices.toString())
 
                     for (i in datekey_count.indices) {
-                        if (datekey_count[i] != null && date_key_list[i] != null) {
+                        //if (datekey_count[i] != null && date_key_list[i] != null)
 
-                            if (datekey_count.size > 1 && datekey_count[0] != null && datekey_count[1] != null) {
-                                for (i in datekey_count.indices) {
-                                    for (d in i until datekey_count.size) {
-                                        if (datekey_count[i]!! < datekey_count[d]!!) {
-                                            var a = datekey_count[i]
-                                            var b = date_value_list[i]
+                        if (datekey_count.size > 1) { //datekey_count[0] != null && datekey_count[1] != null
+                            for (i in datekey_count.indices) {
+                                for (d in i until datekey_count.size) {
+                                    if (datekey_count[i] < datekey_count[d]) {
+                                        var a = datekey_count[i]
+                                        var b = date_value_list[i]
 
-                                            datekey_count[i] = datekey_count[d]
-                                            date_value_list[i] = date_value_list[d]
+                                        datekey_count[i] = datekey_count[d]
+                                        date_value_list[i] = date_value_list[d]
 
-                                            date_value_list[d] = b
-                                            datekey_count[d] = a //  선택정렬을 통해 모두 정렬한다. 가장 최신 날짜가 위로.
-                                        }
-                                        if (d == i)
-                                            continue
+                                        date_value_list[d] = b
+                                        datekey_count[d] = a //  선택정렬을 통해 모두 정렬한다. 가장 최신 날짜가 위로.
                                     }
+                                    if (d == i)
+                                        continue
                                 }
                             }
-
-                            Log.d("확이이이인", datekey_count[0].toString())
-
-                            run_re.clear()
-
-                            if (datekey_count[0] != null) {
-                                for (i in datekey_count.indices) // 날짜에서 - 를 뺀것.
-                                {
-                                    for (y in date_key_list.indices) // -가 붙어있는 날짜.
-                                    {
-                                        if (datekey_count[i] != null && date_key_list[y] != null && datekey_count[i] == date_key_list[y]?.replace("-", "")?.toInt()) {
-                                            var a = date_key_list[y].toString()
-                                            var date_run_checkd = "운동 거리 : " + date_value_list[i].toString() + "m"
-                                            run_re.add(run_recycle_list(a, date_run_checkd))
-                                            Log.d("운동", "$a, $date_run_checkd")
-                                        }
-                                    }
-                                }
-                            }
-
-                            binding.runRecord.layoutManager = LinearLayoutManager(activity!!, LinearLayoutManager.VERTICAL, false)
-                            binding.runRecord.setHasFixedSize(true)
-                            binding.runRecord.adapter = run_recycle(run_re)
-
-                            Log.d("확입", datekey_count.indices.toString())
-                            Log.d("확입", date_key_list.indices.toString())
-
-                            Log.d("확입", datekey_count[i].toString())
-                            Log.d("확인인", datekey_count.indices.toString())
                         }
+
+                        Log.d("확이이이인", datekey_count[0].toString())
+
+                        run_re.clear()
+
+                        for (i in datekey_count.indices) // 날짜에서 - 를 뺀것.
+                        {
+                            for (y in date_key_list.indices) // -가 붙어있는 날짜.
+                            {
+                                if (datekey_count[i] == date_key_list[y]?.replace("-", "")?.toInt()) {
+                                    var a = date_key_list[y].toString()
+                                    var date_run_checkd = "운동 거리 : " + date_value_list[i].toString() + "m"
+                                    run_re.add(run_recycle_list(a, date_run_checkd))
+                                    Log.d("운동", "$a, $date_run_checkd")
+                                }
+                            }
+                        }
+
+                        binding.runRecord.layoutManager = LinearLayoutManager(activity!!, LinearLayoutManager.VERTICAL, false)
+                        binding.runRecord.setHasFixedSize(true)
+                        binding.runRecord.adapter = run_recycle(run_re)
+
+                        Log.d("확입", datekey_count.indices.toString())
+                        Log.d("확입", date_key_list.indices.toString())
+
+                        Log.d("확입", datekey_count[i].toString())
+                        Log.d("확인인", datekey_count.indices.toString())
                     }
 
-                    binding.nameAge.text = infor_list[0] + "\t/\t" + infor_list[1] + "\t/\t" + infor_list[2]
+                    if(infor_list[0] != "" && infor_list[1] != "" && infor_list[2] != "")
+                        binding.nameAge.text = infor_list[0] + "\t/\t" + infor_list[1] + "\t/\t" + infor_list[2]
                 }
                 override fun onCancelled(error: DatabaseError) {
                 }

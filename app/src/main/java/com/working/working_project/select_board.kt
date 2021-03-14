@@ -15,10 +15,6 @@ import com.google.firebase.database.*
 import com.working.working_project.databinding.ActivitySelectBoardBinding
 
 class select_board : Fragment() {
-    /*var position = 0
-    var size = 0
-    var title = ""
-    var content = ""*/
 
     lateinit var binding:ActivitySelectBoardBinding
     lateinit var firebaseDatabase: DatabaseReference// 파이어베이스 실시간 db 관리 객체 얻어오기(Root 가져옴.) ()는 최상위 값.

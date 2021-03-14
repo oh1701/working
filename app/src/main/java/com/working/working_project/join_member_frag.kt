@@ -13,15 +13,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.working.working_project.databinding.ActivityJoinMemberFragBinding
 
-/*
-                                        if(networkInfo == null)
-                                        {
-                                            Toast.makeText(this, "네트워크 연결 상태를 확인해주세요.", Toast.LENGTH_SHORT).show()
-                                        }
-                                        else {
-                                            Log.d("오류", it.exception.toString())
-                                            Toast.makeText(this, "회원가입 실패", Toast.LENGTH_SHORT).show()
-                                        }*/
 class join_member_frag : AppCompatActivity() {
 
     val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()

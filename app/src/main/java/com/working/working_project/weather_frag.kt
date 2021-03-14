@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.*
+import android.net.ConnectivityManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -27,8 +28,6 @@ import retrofit2.Response
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.properties.Delegates
-
-// 받아온 날씨 api에 따라 사진 넣어주고 디자인 정리하기.
 
 class weather_frag : Fragment() {
     lateinit var binding:ActivityWeatherFragBinding
@@ -138,6 +137,9 @@ class weather_frag : Fragment() {
     override fun onResume() {
 
         Log.d("확인1", "onresume")
+        val connectivityManager = activity!!.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        var network_check = connectivityManager.activeNetworkInfo
+        var inconnect:Boolean = network_check?.isConnectedOrConnecting == true
 
             var geocoder = Geocoder(activity!!) // 위도와 경도를 받아 주소를 나타내주는 함수
 
@@ -203,35 +205,53 @@ class weather_frag : Fragment() {
         binding.btn.setOnClickListener {
             if (positi != 0) {
                 if (check_loca == 1) {
-                    if (loca_we != 0.0 && loca_keung != 0.0) {
-                        address = geocoder.getFromLocation(loca_we, loca_keung, 1)
-                        Log.d("찾은 주소", address.get(0).toString())
-                        lm.removeUpdates(gpsLocationListener)
+                    if (!inconnect) { // 와이파이 , 데이터 미연결시 실행
+                        var alter = AlertDialog.Builder(activity!!)
+                        alter.setTitle("권한 허용").setMessage("인터넷이 연결되어있지 않습니다. \n해당 기능을 켜지 않을 시 운동 정보가 서버에 입력되지 않습니다.")
+
+                        alter.setPositiveButton("데이터 켜기") { DialogInterface, i ->
+                            var intent = Intent(android.provider.Settings.ACTION_DATA_USAGE_SETTINGS)
+                            startActivity(intent)
+                        }
+
+                        alter.setNegativeButton("취소") { DialogInterface, i ->
+                        }
+
+                        alter.show()
                     }
+                    else {
+                        if (loca_we != 0.0 && loca_keung != 0.0) {
+                            address = geocoder.getFromLocation(loca_we, loca_keung, 1)
+                            Log.d("찾은 주소", address.get(0).toString())
+                            lm.removeUpdates(gpsLocationListener)
+                        }
 
-                    var subject_area: String
+                        var subject_area: String
 
-                    if (address.get(0).subAdminArea != null) {
+                        if (address.get(0).subAdminArea != null) {
 
-                        var admin = address.get(0).adminArea.toString()
-                        var subadmin = address.get(0).subAdminArea.toString()
-                        var locality = address.get(0).locality.toString()
-                        var thorough = address.get(0).thoroughfare.toString()
-                        subject_area = admin + subadmin + locality + thorough
-                    } else {
-                        var admin = address.get(0).adminArea.toString()
-                        var locality = address.get(0).locality.toString()
-                        var thorough = address.get(0).thoroughfare.toString()
-                        subject_area = "$admin " + "$locality " + "$thorough"
+                            var admin = address.get(0).adminArea.toString()
+                            var subadmin = address.get(0).subAdminArea.toString()
+                            var locality = address.get(0).locality.toString()
+                            var thorough = address.get(0).thoroughfare.toString()
+                            subject_area = admin + subadmin + locality + thorough
+                        } else {
+                            var admin = address.get(0).adminArea.toString()
+                            var locality = address.get(0).locality.toString()
+                            var thorough = address.get(0).thoroughfare.toString()
+                            subject_area = "$admin " + "$locality " + "$thorough"
+                        }
+
+                        Log.d("찾은 주소 지번 빼고", subject_area)
+                        binding.location.text = " 현재 위치 : ${subject_area}"
+
+                        location_check = 1
+                        Log.d("확인1", "removeUpdates")
+
                     }
+                }
 
-                    Log.d("찾은 주소 지번 빼고", subject_area)
-                    binding.location.text = " 현재 위치 : ${subject_area}"
-
-                    location_check = 1
-                    Log.d("확인1", "removeUpdates")
-
-                } else
+                else
                     Toast.makeText(activity!!, "위치를 불러오지 못했습니다. 잠시 후 다시 눌러주세요.", Toast.LENGTH_SHORT).show()
             }
             else

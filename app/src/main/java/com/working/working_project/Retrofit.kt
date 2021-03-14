@@ -14,7 +14,7 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Query
 
-val retrofit = Retrofit.Builder().baseUrl("http://apis.data.go.kr/1360000/VilageFcstInfoService/")
+val retrofit = Retrofit.Builder().baseUrl("http://apis.data.go.kr/1360000/VilageFcstInfoService/") // url 지정
     .addConverterFactory(GsonConverterFactory.create())
     .build()
 
