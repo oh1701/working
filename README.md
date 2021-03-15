@@ -1,5 +1,5 @@
 # 원데이 러닝
-<img src="https://user-images.githubusercontent.com/74566094/111119105-07b3ea80-85ad-11eb-8590-3d72f673bb91.png" width = "50%"|height = "30%")
+<img src="https://user-images.githubusercontent.com/74566094/111119105-07b3ea80-85ad-11eb-8590-3d72f673bb91.png" width = "50%"|height = "30%">
 ## 어플 소개
 대다수의 러닝 어플들은 사용자의 움직임을 측정하고 거리 별 칼로리, 운동거리를 측정합니다.
 
