@@ -1,7 +1,0 @@
-네이버 api client id 
-
-1DzszHpGWDSM3PL9jpEb
-
-client secret
-
-03BmrVGzpb
