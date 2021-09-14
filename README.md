@@ -12,7 +12,7 @@
 
 ### 코틀린 파일 설명
 #### < 로그인 구현부 >
-<img src="https://user-images.githubusercontent.com/74566094/111119105-07b3ea80-85ad-11eb-8590-3d72f673bb91.png" width = "50%|height = 30"/> 
+<img src="https://user-images.githubusercontent.com/74566094/133252889-4730064f-cb43-429c-ad49-5127296096d9.jpg" width = "50%|height = 30"/> 
 login_main = 사용자가 어플을 최초로 켰을 경우 가장 먼저 나타나는 로그인 구현 화면입니다.  
 join_member_frag = 사용자의 계정이 없을 경우 사용되는 회원 가입 화면입니다. Intent 값이 비밀번호 찾기 일경우 나타나는 화면이 달라집니다.  
 
